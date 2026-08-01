@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- STINK-AURA (Option, standardmaessig an): ~3 von 8 wilden Begegnungen
+  verweht der Gestank (encounter.roll), und NPCs, an denen PRISTON
+  vorbeilaeuft, reagieren mit einer abbrechbaren Schreckblase -- einmal
+  pro NPC und Map-Besuch, mit Cooldown. Option aus = exakt Vanilla.
+
 ## 0.5.0
 
 - Echte Umlaute: eigene Font-Seite (ä ö ü Ä Ö Ü ß, Basis 0x120) plus

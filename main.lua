@@ -231,7 +231,54 @@ return function(mod)
   mod.options:define({
     { key = "slovak_look", label = "SLOWAKEI-LOOK", type = "toggle",
       default = true },
+    { key = "stink_aura", label = "STINK-AURA", type = "toggle",
+      default = true },
   })
+
+  -- ------- die Stink-Aura
+  -- Der Gestank ist spielmechanisch: ein Teil der wilden Pokemon nimmt
+  -- Reissaus, bevor der Kampf beginnt, und NPCs, an denen PRISTON vorbei-
+  -- laeuft, reagieren mit einer Schreckblase. Option aus = exakt Vanilla.
+
+  mod.hooks:wrap("encounter.roll", function(next, encDef, ctx)
+    local enc = next(encDef, ctx)
+    if enc and mod.options:get("stink_aura") then
+      local rng = (ctx and ctx.rng) or love.math.random
+      -- ~3 von 8 Begegnungen verweht der Gestank
+      if rng(0, 255) < 96 then return nil end
+    end
+    return enc
+  end)
+
+  -- Schreckblasen: pro NPC einmal je Map-Besuch, mit globalem Cooldown,
+  -- kurz und per Knopfdruck abbrechbar -- exakt der Trainer-"!"-Mechanik
+  -- der Engine nachempfunden (ow.emote, engine_internals)
+  local stinkCooldown, stinkSeen = 0, {}
+  mod.events:on("map.entered", function() stinkSeen = {} end)
+  mod.events:on("world.stepped", function(ev)
+    if not mod.options:get("stink_aura") then return end
+    if stinkCooldown > 0 then stinkCooldown = stinkCooldown - 1; return end
+    local world = mod.world
+    local ow = world and world.overworld and world:overworld()
+    if not ow or ow.emote or ow.engaging or (ow.runner and ow.runner:isRunning()) then
+      return
+    end
+    if type(ow.npcs) ~= "table" then return end
+    for _, npc in ipairs(ow.npcs) do
+      local nx, ny = npc.cellX, npc.cellY
+      if nx and ny
+         and math.abs(nx - ev.x) + math.abs(ny - ev.y) == 1
+         and not stinkSeen[npc.id or (nx .. "," .. ny)]
+         and love.math.random(3) == 1 then
+        stinkSeen[npc.id or (nx .. "," .. ny)] = true
+        stinkCooldown = 20
+        ow.emote = { npc = npc, frames = 26, bubble = 1, skippable = true }
+        mod.events:emit("mod.priston.smelled",
+          { mapId = ev.mapId, npc = npc.id })
+        return
+      end
+    end
+  end)
 
   -- Ausgabe in der ROHFORM (vier {r,g,b}-Triple-Arrays): der Map-Paletten-
   -- Pfad (PaletteFX.sendColors) indiziert numerisch und normalisiert die
