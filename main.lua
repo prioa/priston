@@ -219,7 +219,7 @@ return function(mod)
   mod.content.field:patch("boot", {
     namePresets = {
       player = { __prepend = { "PRISTON", "SMRAD", "BOBIK" } },
-      rival = { __prepend = { "GASTON", "FIFI", "LORD" } },
+      rival = { __prepend = { "CESAR", "REX", "LORD" } },
     },
   })
 
@@ -234,6 +234,198 @@ return function(mod)
     { key = "stink_aura", label = "STINK-AURA", type = "toggle",
       default = true },
   })
+
+  -- ------- Quest: "Die Ehre zurück"
+  -- Der Hof gewährt das VOLLPROGRAMM beim Hundefrisör zu MÖDLING (Pallet
+  -- Town spielt Mödling; die Schilder unten benennen auch WR. NEUDORF
+  -- (Lavender) und GAADEN (Viridian)). Zutaten bei RENE und NICI holen,
+  -- Finale gegen CESAR. Alles über Vanilla-NPCs, kein Map-Edit; Zweige
+  -- ohne Quest-Bezug spielen den Original-Text (show_text löst die
+  -- TEXT_-Konstante über die Text-Pointer der Map auf).
+
+  local Q_START = "MOD_PRISTON_QUEST"
+  local Q_DONE = "MOD_PRISTON_DONE"
+  local Q_RENE = "MOD_PRISTON_RENE"
+  local Q_NICI = "MOD_PRISTON_NICI"
+  local WASSER = "PRISTON_LAVENDELWASSER"
+  local SEIFE = "PRISTON_KRAEUTERSEIFE"
+  local SIEGEL = "PRISTON_KOENIGSSIEGEL"
+
+  mod.content.items:register(WASSER, {
+    id = WASSER, name = "LAVENDELWASSR", price = 0,
+    keyItem = true, tossable = false,
+  })
+  mod.content.items:register(SEIFE, {
+    id = SEIFE, name = "KRÄUTERSEIFE", price = 0,
+    keyItem = true, tossable = false,
+  })
+  mod.content.items:register(SIEGEL, {
+    id = SIEGEL, name = "KÖNIGSSIEGEL", price = 0,
+    keyItem = true, tossable = false,
+  })
+
+  mod.content.trainers:register("OPP_CESAR", {
+    id = "OPP_CESAR",
+    name = "CESAR",
+    pic = mod.path .. "/assets/priston_cesar.png",
+    baseMoney = 99,
+    parties = {
+      {
+        { level = 14, species = "GROWLITHE" },
+        { level = 18, species = "ARCANINE" },
+      },
+    },
+  })
+
+  mod.content.map_scripts:register("PALLET_TOWN", {
+    talk = {
+      TEXT_PALLETTOWN_SIGN = {
+        { "show_text", "MÖDLING\fHeimat des besten\nHUNDEFRISÖRS von\vganz KANTO." },
+      },
+      TEXT_PALLETTOWN_FISHER = {
+        { "check_flag", Q_DONE }, { "jump_if_true", "fertig" },
+        { "check_flag", Q_START }, { "jump_if_true", "laufend" },
+        { "face_player" },
+        { "show_text", "PRISTON! Ein Brief\nvom KÖNIGSHOF!\f"
+          .. "\"Man gewährt dir\ndas VOLLPROGRAMM\vbeim HUNDEFRISÖR\vzu MÖDLING.\"\f"
+          .. "\"Bestehst du es,\nist deine EHRE\vwiederhergestellt.\"" },
+        { "show_text", "Und ich mache das\nVOLLPROGRAMM!\f"
+          .. "Aber ich brauche:\nLAVENDELWASSER von\vRENE aus\vWR. NEUDORF...\f"
+          .. "...und KRÄUTER-\nSEIFE von NICI\vaus GAADEN!" },
+        { "set_flag", Q_START },
+        { "jump", "end" },
+
+        { "label", "laufend" },
+        { "check_item", WASSER }, { "jump_if_false", "erinnern" },
+        { "check_item", SEIFE }, { "jump_if_false", "erinnern" },
+        { "take_item", WASSER },
+        { "take_item", SEIFE },
+        { "show_text", "Alles da!\fDann: SCHAUM!\nBÜRSTEN! FÖHN!\fDas VOLLPROGRAMM!" },
+        { "emote", "player", "happy", 45 },
+        { "wait", 20 },
+        { "show_text", "PRISTON glänzt wie\nein KRONJUWEL!" },
+        { "show_text", "?!\fCESAR: WUFF!\nWUFF! WUFF!\f"
+          .. "CESAR: Glänzen\nkannst du gerne.\f"
+          .. "CESAR: Aber nach\nHAUSE kommst du\vmir NICHT!" },
+        { "start_battle", "trainer", "OPP_CESAR", 1 },
+        { "jump_if_false", "verloren" },
+        { "give_item", SIEGEL, 1, false },
+        { "show_text", "CESAR zieht\nwinselnd ab!\f"
+          .. "{PLAYER} erhält das\nKÖNIGSSIEGEL!" },
+        { "show_text", "Der Hof wartet,\nPRISTON.\fKehrst du zurück?" },
+        { "choice", { "ZUM HOF", "KANTO" } },
+        { "jump_if_false", "kanto" },
+        { "set_field", "mod:entscheidung", "hof" },
+        { "set_flag", Q_DONE },
+        { "show_text", "Dann lauf, du\nsauberer Hund!\f"
+          .. "Möge der Hof dich\nendlich... riechen\vkönnen." },
+        { "jump", "end" },
+
+        { "label", "kanto" },
+        { "set_field", "mod:entscheidung", "kanto" },
+        { "set_flag", Q_DONE },
+        { "show_text", "Ha! Wusste ich es.\f"
+          .. "Hier fragt eben\nniemand, wie du\vriechst.\f"
+          .. "Willkommen daheim,\nPRISTON." },
+        { "jump", "end" },
+
+        { "label", "verloren" },
+        { "show_text", "CESAR kichert wie\nein nasser Pudel.\f"
+          .. "Heil dein Team --\ndann NOCHMAL!" },
+        { "jump", "end" },
+
+        { "label", "erinnern" },
+        { "show_text", "Noch nicht alles\nda!\f"
+          .. "LAVENDELWASSER:\nRENE, WR. NEUDORF.\f"
+          .. "KRÄUTERSEIFE:\nNICI, GAADEN." },
+        { "jump", "end" },
+
+        { "label", "fertig" },
+        { "show_text", "Der sauberste Hund\nbeider Welten!\f...meistens." },
+      },
+    },
+  })
+
+  mod.content.map_scripts:register("LAVENDER_TOWN", {
+    talk = {
+      TEXT_LAVENDERTOWN_SIGN = {
+        { "show_text", "WR. NEUDORF\f(Bei Hunger:\nfragt nach RENE.)" },
+      },
+      TEXT_LAVENDERTOWN_COOLTRAINER_M = {
+        { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
+        { "check_flag", Q_RENE }, { "jump_if_true", "danach" },
+        { "face_player" },
+        { "show_text", "RENE: PRISTON!\nAlter Stinker!\f"
+          .. "LAVENDELWASSER?\nKlar. Für dich\vdoch immer." },
+        { "give_item", WASSER, 1, false },
+        { "show_text", "{PLAYER} erhält\nLAVENDELWASSER!" },
+        { "show_text", "RENE: Und hier:\nLECKERLIS!\f"
+          .. "Für unterwegs.\nUnd für danach.\vUnd dazwischen." },
+        { "heal_party" },
+        { "show_text", "PRISTON hat ALLES\nsofort verdrückt!\f"
+          .. "(Er wirkt noch\nRUNDER als\vvorher...)" },
+        { "set_flag", Q_RENE },
+        { "jump", "end" },
+        { "label", "danach" },
+        { "show_text", "RENE: Nachschlag?\nLeider alles\vaufgegessen.\fVon dir." },
+        { "jump", "end" },
+        { "label", "vanilla" },
+        { "show_text", "TEXT_LAVENDERTOWN_COOLTRAINER_M" },
+      },
+    },
+  })
+
+  mod.content.map_scripts:register("VIRIDIAN_CITY", {
+    talk = {
+      TEXT_VIRIDIANCITY_SIGN = {
+        { "show_text", "GAADEN\f(Bitte leise --\nFLORIAN spielt.)" },
+      },
+      TEXT_VIRIDIANCITY_GIRL = {
+        { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
+        { "check_flag", Q_NICI }, { "jump_if_true", "danach" },
+        { "face_player" },
+        { "show_text", "NICI: Ah! Der Hund\nvom KÖNIGSHOF!\f"
+          .. "Die KRÄUTERSEIFE\nist frisch\vgekocht. Hier!" },
+        { "give_item", SEIFE, 1, false },
+        { "show_text", "{PLAYER} erhält die\nKRÄUTERSEIFE!" },
+        { "show_text", "NICI: FLORIAN?\nDer hockt oben im\vKINDERZIMMER.\f"
+          .. "Seit 26 Jahren.\fSag ihm, das Essen\nist fertig. Mich\vhört er nie." },
+        { "set_flag", Q_NICI },
+        { "jump", "end" },
+        { "label", "danach" },
+        { "show_text", "NICI: Und? Hat\nFLORIAN reagiert?\f...dachte ich mir." },
+        { "jump", "end" },
+        { "label", "vanilla" },
+        { "show_text", "TEXT_VIRIDIANCITY_GIRL" },
+      },
+    },
+  })
+
+  mod.content.map_scripts:register("VIRIDIAN_NICKNAME_HOUSE", {
+    talk = {
+      TEXT_VIRIDIANNICKNAMEHOUSE_BALDING_GUY = {
+        { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
+        { "face_player" },
+        { "show_text", "FLORIAN: Nicht\njetzt. RANGLISTE.\f"
+          .. "(Er zockt seit\nStunden und dreht\vnebenbei ein\vBUTTERFLY-MESSER.)\f"
+          .. "FLORIAN: AU!\nSchon wieder der\vFinger..." },
+        { "check_flag", Q_NICI }, { "jump_if_false", "end" },
+        { "show_text", "PRISTON bellt:\nESSEN IST FERTIG!\f"
+          .. "FLORIAN: ...gleich.\nNoch EIN Match." },
+        { "jump", "end" },
+        { "label", "vanilla" },
+        { "show_text", "TEXT_VIRIDIANNICKNAMEHOUSE_BALDING_GUY" },
+      },
+    },
+  })
+
+  -- Quest-Abschluss anderen Mods mitteilen
+  mod.events:on("flag.changed", function(ev)
+    if ev.name == Q_DONE and ev.value then
+      mod.events:emit("mod.priston.ehre_wiederhergestellt",
+        { entscheidung = mod.save:get("entscheidung") })
+    end
+  end)
 
   -- ------- die Stink-Aura
   -- Der Gestank ist spielmechanisch: ein Teil der wilden Pokemon nimmt
@@ -542,11 +734,11 @@ return function(mod)
     byId.name_player.title = "DEIN NAME?"
     byId.name_player.presets = { "PRISTON", "SMRAD", "BOBIK" }
 
-    byId.ask_rival_name.text = "Das ist GASTON.\nDer neue LIEBLING\vdes Hofes.\f"
-      .. "SEIN Rücken wird\ngekrault.\f"
-      .. "Und ER hat deine\nVerbannung\veingefädelt!"
+    byId.ask_rival_name.text = "Das ist CESAR.\nDer große weiße\vHÜTEHUND aus dem\vNachbarhaus.\f"
+      .. "Er hat dich JEDEN\nTAG angebellt.\f"
+      .. "Und SEINETWEGEN\nhat der Hof dir\vnie geglaubt!"
     byId.name_rival.title = "SEIN NAME?"
-    byId.name_rival.presets = { "GASTON", "FIFI", "LORD" }
+    byId.name_rival.presets = { "CESAR", "REX", "LORD" }
 
     byId.legend.text = "{PLAYER}!\nDeine Reise\vbeginnt jetzt!\f"
       .. "Hol dir die EHRE\ndes Königshauses\vzurueck!\f"

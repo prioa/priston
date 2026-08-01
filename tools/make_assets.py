@@ -455,6 +455,53 @@ def make_stink():
     sheet.save(os.path.join(OUT, "priston_stink.png"))
 
 
+def make_cesar():
+    """56x56 Trainer-Pic: CESAR, der grosse weisse Huetehund von nebenan --
+    aufgeplustert, Ohren zurueck, Zaehne gebleckt. 4 Graustufen auf
+    opakem Weiss wie die extrahierten Trainer-Pics; das SGB-Zonen-Remap
+    faerbt ihn dann wie jeden Vanilla-Trainer."""
+    L2 = (216, 216, 216, 255)   # helles Fell
+    img = Image.new("RGBA", (56, 56), (255, 255, 255, 255))
+    d = ImageDraw.Draw(img)
+
+    # maechtiger Fellkoerper
+    d.ellipse([4, 24, 51, 55], fill=L2, outline=K)
+    # Fell-Zacken am Ruecken (aufgeplustert)
+    for x0 in range(6, 48, 6):
+        d.polygon([(x0, 28), (x0 + 3, 21), (x0 + 6, 28)], fill=L2, outline=K)
+    # Brustwolke
+    d.ellipse([18, 34, 37, 55], fill=(240, 240, 240, 255))
+    # Kopf, leicht gesenkt (Drohhaltung)
+    d.ellipse([14, 8, 41, 32], fill=L2, outline=K)
+    # Ohren flach nach hinten
+    d.polygon([(15, 14), (6, 10), (16, 22)], fill=L2, outline=K)
+    d.polygon([(40, 14), (49, 10), (39, 22)], fill=L2, outline=K)
+    # zornige Brauen + enge Augen
+    d.line([(20, 15), (26, 18)], fill=K)
+    d.line([(35, 15), (29, 18)], fill=K)
+    d.rectangle([22, 18, 25, 20], fill=K)
+    d.rectangle([30, 18, 33, 20], fill=K)
+    # Schnauze mit gebleckten Zaehnen
+    d.ellipse([21, 21, 34, 31], fill=(240, 240, 240, 255), outline=K)
+    d.rectangle([25, 22, 30, 24], fill=K)          # Nase
+    d.line([(22, 27), (33, 27)], fill=K)           # Lefze
+    for tx in (23, 26, 29, 32):                    # Zaehne
+        d.polygon([(tx, 27), (tx + 1, 29), (tx + 2, 27)], fill=(96, 96, 96, 255))
+    # Knurr-Linien
+    d.line([(10, 6), (14, 9)], fill=(96, 96, 96, 255))
+    d.line([(45, 6), (41, 9)], fill=(96, 96, 96, 255))
+
+    # auf die 4 Graustufen klemmen, Weiss bleibt opak
+    px = img.load()
+    for y in range(56):
+        for x in range(56):
+            r = px[x, y][0]
+            v = min((255, 216, 96, 0), key=lambda s: abs(s - r))
+            if v == 216: v = 176
+            px[x, y] = (v, v, v, 255)
+    img.save(os.path.join(OUT, "priston_cesar.png"))
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     make_walker()
@@ -464,4 +511,5 @@ if __name__ == "__main__":
     make_font()
     make_bike()
     make_surf()
+    make_cesar()
     print("wrote priston_walk.png, priston_back.png, priston_front.png")

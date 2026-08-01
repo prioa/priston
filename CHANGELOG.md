@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0
+
+- Story-Quest "Die Ehre zurück": Der Hof gewährt das VOLLPROGRAMM beim
+  Hundefrisör zu MÖDLING (Pallet Town). Lavendelwasser bei RENE in
+  WR. NEUDORF (Lavender) holen -- samt Leckerli-Mast --, Kräuterseife
+  bei NICI in GAADEN (Viridian), FLORIAN zockt derweil oben im
+  Kinderzimmer. Finale: Trainerkampf gegen CESAR (Growlithe/Arcanine)
+  mit eigenem Porträt, Belohnung KÖNIGSSIEGEL und der Wahl: zurück an
+  den Hof oder bleiben in Kanto (landet in mod.save.entscheidung).
+- Intro umgestellt: der Rivale ist jetzt CESAR, der große weiße
+  Hütehund aus dem Nachbarhaus.
+- Ortsschilder benennen MÖDLING, WR. NEUDORF und GAADEN.
+
 ## 0.6.0
 
 - STINK-AURA (Option, standardmaessig an): ~3 von 8 wilden Begegnungen

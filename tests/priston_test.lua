@@ -68,7 +68,7 @@ T.check(Data.field.playerPics.front:find("priston_front", 1, true) ~= nil,
 
 local presets = Data.field.boot.namePresets
 T.eq(presets.player[1], "PRISTON", "PRISTON leads the player presets")
-T.eq(presets.rival[1], "GASTON", "GASTON leads the rival presets")
+T.eq(presets.rival[1], "CESAR", "CESAR leads the rival presets")
 T.check(#presets.player > 3, "vanilla player presets survive the prepend")
 
 T.check(Data.audio and Data.audio.cries and Data.audio.cries.PRISTON ~= nil,
@@ -120,11 +120,30 @@ T.check(order.world_spiel < order.priston_reveal
 T.eq(byId.priston_oath.kind, "yesno", "the oath is a yes/no")
 T.eq(byId.priston_oath.saveKey, "ehre_schwur", "oath writes ehre_schwur")
 T.eq(byId.priston_reveal.cry, "PRISTON", "reveal plays the dog's cry")
-T.check(byId.priston_reveal.pic and byId.priston_reveal.pic.type == "image",
-  "reveal shows the portrait")
+T.eq(byId.priston_reveal.pic, "player",
+  "reveal uses the player shorthand (traegt trueColor)")
 T.check(byId.oak_welcome.text ~= nil, "welcome text replaced (German)")
 T.eq(byId.name_player.presets[1], "PRISTON", "naming screen leads with PRISTON")
-T.eq(byId.name_rival.presets[1], "GASTON", "rival naming leads with GASTON")
+T.eq(byId.name_rival.presets[1], "CESAR", "rival naming leads with CESAR")
+
+-- ------- die Quest ist verdrahtet
+
+T.check(Data.items.PRISTON_LAVENDELWASSER ~= nil, "Lavendelwasser registered")
+T.check(Data.items.PRISTON_KRAEUTERSEIFE ~= nil, "Kraeuterseife registered")
+T.check(Data.items.PRISTON_KOENIGSSIEGEL ~= nil, "Koenigssiegel registered")
+T.check(Data.trainers.OPP_CESAR ~= nil, "CESAR trainer registered")
+T.eq(Data.trainers.OPP_CESAR.parties[1][2].species, "ARCANINE",
+  "CESAR runs Growlithe + Arcanine")
+local MapScripts = require("src.script.MapScripts")
+for _, probe in ipairs({
+  { "PALLET_TOWN", "TEXT_PALLETTOWN_FISHER" },
+  { "LAVENDER_TOWN", "TEXT_LAVENDERTOWN_COOLTRAINER_M" },
+  { "VIRIDIAN_CITY", "TEXT_VIRIDIANCITY_GIRL" },
+  { "VIRIDIAN_NICKNAME_HOUSE", "TEXT_VIRIDIANNICKNAMEHOUSE_BALDING_GUY" },
+}) do
+  local entry = MapScripts.talkScript(probe[1], probe[2])
+  T.check(entry ~= nil, "quest talk handler on " .. probe[1])
+end
 
 -- ------- Antworten landen im Mod-Save
 

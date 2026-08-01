@@ -1,7 +1,7 @@
 return {
   summary = "Spiele als PRISTON: dicker Schaeferhund, vom Hof der Slowakei verbannt.",
   author = "patrickfock7",
-  tags = { "cosmetic", "story", "beginner", "deutsch" },
+  tags = { "cosmetic", "story", "quest", "deutsch" },
   differences = {
     changed = {
       "Overworld-Laufsprite des Spielers (SPRITE_PRISTON, eigenes Sheet)",
