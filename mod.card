@@ -7,7 +7,8 @@ return {
       "Overworld-Laufsprite des Spielers (SPRITE_PRISTON, eigenes Sheet)",
       "Battle-Backpic und Trainer-Portrait (field.playerPics)",
       "Prof. Eichs Intro: deutsche Verbannungs-Story mit 4 neuen Steps",
-      "Namensvorschlaege: PRISTON/SMRAD/BOBIK und GASTON/FIFI/LORD zuerst",
+      "Namensvorschlaege: PRISTON/SMRAD/BOBIK und CESAR/REX/LORD zuerst",
+      "Quest-Dialoge auf PALLET_TOWN, LAVENDER_TOWN, VIRIDIAN_CITY (+ Nickname-Haus)",
     },
     added = {
       "Cry 'PRISTON' (eigenes ChipAsm-Wuff)",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- mod.card: Rivalen-Eintrag auf CESAR aktualisiert, Quest-Maps gelistet.
+
 ## 0.7.0
 
 - Story-Quest "Die Ehre zurück": Der Hof gewährt das VOLLPROGRAMM beim
