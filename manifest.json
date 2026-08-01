@@ -13,5 +13,6 @@
   "conflicts": [],
   "incompatible": [],
   "experimental": false,
+  "github": "prioa/priston",
   "description": "Spiele als PRISTON, den uebergewichtigen Schaeferhund, der wegen seines Gestanks aus dem Koenigshaus der Slowakei verbannt wurde."
 }
