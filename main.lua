@@ -11,18 +11,34 @@ return function(mod)
   local front = mod.path .. "/assets/priston_front.png"
 
   -- ------- der Hund selbst: Walker-Sheet + Battle-Pics
+  -- trueColor: die PNGs bringen echte GBA-Farben und echtes Alpha mit;
+  -- das Flag nimmt sie vom 4-Graustufen-Remap der Engine aus
 
   mod.content.sprites:register("SPRITE_PRISTON", {
     id = "SPRITE_PRISTON",
     image = walk,
     frames = 6,
     walker = true,
+    trueColor = true,
   })
 
   -- patch, nicht override: surf/bike/fly bleiben Vanilla, nur das Laufen
   -- gehoert PRISTON
   mod.content.field:patch("playerSprites", { walk = "SPRITE_PRISTON" })
   mod.content.field:patch("playerPics", { back = back, front = front })
+
+  -- playerPics kennt kein trueColor-Feld; der Hook ist der sanktionierte
+  -- Weg: ctx.trueColor = true nimmt unsere farbigen Pics aus der
+  -- Paletten-Quantisierung (BattleState getImage / OakSpeech resolvePic)
+  mod.hooks:wrap("player.sprite", function(next, path, ctx)
+    local out = next(path, ctx)
+    local effective = type(out) == "string" and out or path
+    if type(effective) == "string"
+       and effective:find("priston_", 1, true) then
+      ctx.trueColor = true
+    end
+    return out
+  end)
 
   -- __prepend statt Listen-Ersatz: die Vanilla-Namen bleiben waehlbar,
   -- PRISTON steht nur zuerst
@@ -32,6 +48,63 @@ return function(mod)
       rival = { __prepend = { "GASTON", "FIFI", "LORD" } },
     },
   })
+
+  -- ------- Slowakei-Color-Grading
+  -- Jede Map-Palette bekommt beim Laden eine kuehle Tatra-Variante
+  -- (warme Kanaele runter, Blau hoch); der map.palette-Hook schaltet per
+  -- Option um. Vanilla-Paletten bleiben unangetastet im Registry.
+
+  mod.options:define({
+    { key = "slovak_look", label = "SLOWAKEI-LOOK", type = "toggle",
+      default = true },
+  })
+
+  local function gradeColor(r, g, b)
+    return {
+      r = math.max(0, math.floor(r * 0.82)),
+      g = math.max(0, math.floor(g * 0.96)),
+      b = math.min(255, math.floor(b * 1.15 + 10)),
+    }
+  end
+
+  local function gradePalette(value)
+    local out = {}
+    for i = 1, 4 do
+      local c = value[i] or (value.colors and value.colors[i])
+      if type(c) ~= "table" then return nil end
+      local r = c.r or c[1]
+      local g = c.g or c[2]
+      local b = c.b or c[3]
+      if type(r) ~= "number" or type(g) ~= "number"
+         or type(b) ~= "number" then
+        return nil
+      end
+      out[i] = gradeColor(r, g, b)
+    end
+    return { colors = out }
+  end
+
+  -- erst sammeln, dann registrieren: nie das Registry mutieren, waehrend
+  -- each() darueber laeuft
+  local pending, graded = {}, {}
+  for name, value in mod.content.palettes:each() do
+    local slovak = type(value) == "table" and gradePalette(value)
+    if slovak then pending[#pending + 1] = { name = name, value = slovak } end
+  end
+  for _, entry in ipairs(pending) do
+    mod.content.palettes:register("SLOVAK_" .. entry.name, entry.value)
+    graded[entry.name] = "SLOVAK_" .. entry.name
+  end
+  if #pending == 0 then
+    mod.log:warn("keine Map-Paletten im Registry gefunden -- das "
+      .. "SLOWAKEI-LOOK-Grading bleibt wirkungslos (Headless-Lauf?)")
+  end
+
+  mod.hooks:wrap("map.palette", function(next, name, map, ctx)
+    local out = next(name, map, ctx)
+    if not mod.options:get("slovak_look") then return out end
+    return graded[out] or out
+  end)
 
   -- ------- ein standesgemaesses "WUFF" als Cry (ChipAsm steht auf der
   -- Whitelist, braucht kein engine_internals)

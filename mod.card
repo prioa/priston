@@ -12,10 +12,13 @@ return {
     added = {
       "Cry 'PRISTON' (eigenes ChipAsm-Wuff)",
       "mod.save: ehre_schwur (Antwort im Intro), intro_gesehen",
+      "Option SLOWAKEI-LOOK: kuehles Tatra-Color-Grading aller Map-Paletten",
+      "SLOVAK_*-Palettenvarianten (Vanilla-Paletten bleiben unangetastet)",
     },
     known = {
       "Surf-, Rad- und Flug-Sprites bleiben Vanilla (Priston auf dem Rad folgt)",
       "Die Shrink-Animation am Intro-Ende nutzt die Vanilla-Frames",
+      "Trainer Card und Ruhmeshalle ignorieren trueColor -- das Portrait wird dort palettengetoent",
       "Deutsche Texte ohne Umlaute (Gen-1-Zeichensatz); Umlaut-Fontpage geplant",
       "Nur Spieltexte des Mods sind deutsch, das restliche Spiel bleibt englisch",
     },

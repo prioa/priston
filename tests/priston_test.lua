@@ -33,6 +33,29 @@ local sprite = Data.sprites and Data.sprites.SPRITE_PRISTON
 T.check(sprite ~= nil, "SPRITE_PRISTON registered")
 T.eq(sprite.frames, 6, "walker sheet has 6 frames")
 T.check(sprite.walker == true, "sprite is a walker")
+T.check(sprite.trueColor == true, "walker opts out of the 4-shade remap")
+
+-- der player.sprite-Hook markiert unsere farbigen Pics als trueColor
+local Sprites = require("src.pokemon.Sprites")
+local _, backTrue = Sprites.playerPath(Data, "back", { kind = "battle" })
+T.check(backTrue == true, "battle back pic resolves trueColor")
+local _, frontTrue = Sprites.playerPath(Data, "front", { kind = "intro" })
+T.check(frontTrue == true, "intro front pic resolves trueColor")
+
+-- Slowakei-Grading: jede Map-Palette hat eine SLOVAK_-Variante
+if Data.palettes and Data.palettes.palettes then
+  local pals = Data.palettes.palettes
+  local sampled, gradedOk = 0, 0
+  for name in pairs(pals) do
+    if not name:find("^SLOVAK_") and pals["SLOVAK_" .. name] then
+      sampled = sampled + 1
+      local v = pals["SLOVAK_" .. name]
+      if type(v) == "table" and (v.colors or v[1]) then gradedOk = gradedOk + 1 end
+    end
+  end
+  T.check(sampled > 0, "graded palette variants registered")
+  T.eq(sampled, gradedOk, "graded variants carry 4-color tables")
+end
 
 T.eq(Data.field.playerSprites.walk, "SPRITE_PRISTON",
   "player walks as PRISTON")

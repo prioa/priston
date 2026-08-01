@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate PRISTON's original pixel art.
+"""Generate PRISTON's original pixel art (GBA-style color, real alpha).
 
 Every pixel here is original work drawn in code -- nothing is derived from
 ROM content, matching the mod platform's legal posture.
@@ -7,127 +7,141 @@ ROM content, matching the mod platform's legal posture.
 Outputs (into ../assets/):
   priston_walk.png   16x96 walker sheet: 6 frames of 16x16
                      (stand down/up/left, walk down/up/left; right = flip)
-  priston_back.png   32x32 battle back pic (grayscale on white, opaque)
-  priston_front.png  56x56 intro / trainer card pic (white -> transparent)
+  priston_back.png   32x32 battle back pic (transparent background)
+  priston_front.png  56x56 intro / trainer card pic (transparent background)
 
-Shade legend in the grids below:
-  .  white  (overworld: OBJ color 0 = transparent; front pic: matted alpha)
-  1  light  (tan fur)
-  2  dark   (saddle marking / shading)
-  3  black  (outline, nose, eyes)
+All three ship real colors with a real alpha channel; the mod marks them
+trueColor so the engine's 4-shade palette remap leaves them untouched
+(SpriteRenderer.lua / BattleState getImage both skip the quantize then).
 
-The engine remaps overworld shades at draw time with thresholds
-r>0.83 white, r>0.5 light, r>0.17 dark, else black (SpriteRenderer.lua),
-so the four gray values below sit safely inside those buckets.
+Grid legend:
+  .  transparent          t  tan fur        c  cream chest/belly
+  s  saddle dark brown    b  mid brown      k  near-black outline/mask
+  p  pink inner ear       r  collar red     w  collar white
+  u  collar blue          g  crown gold     G  crown dark gold
+  e  stink green
 """
 
 import os
 from PIL import Image, ImageDraw
 
-SHADE = {".": 255, "1": 176, "2": 96, "3": 0}
+PAL = {
+    "t": (205, 150, 88, 255),
+    "c": (240, 214, 166, 255),
+    "s": (82, 55, 36, 255),
+    "b": (128, 88, 56, 255),
+    "k": (34, 26, 22, 255),
+    "p": (198, 124, 118, 255),
+    "r": (206, 52, 58, 255),
+    "w": (238, 238, 238, 255),
+    "u": (28, 80, 158, 255),
+    "g": (233, 186, 62, 255),
+    "G": (160, 118, 30, 255),
+    "e": (140, 178, 96, 255),
+    ".": (0, 0, 0, 0),
+}
 OUT = os.path.join(os.path.dirname(__file__), "..", "assets")
 
 # ---------------------------------------------------------------- walker
 
-# A chubby German Shepherd. Down = facing the camera: pointy ears, muzzle,
-# dark chest patch, a visibly round body; the walk frames swap between a
-# narrow and a splayed stance, which reads as a waddle.
+# A chubby German Shepherd with the Slovak-tricolor collar. Down = facing
+# the camera: dark forehead and muzzle mask, tan brows and cheeks, cream
+# chest; the walk frames swap between a narrow and a splayed stance,
+# which reads as a waddle.
 
 DOWN_STAND = [
     "................",
-    "..3..........3..",
-    ".323........323.",
-    ".3223......3223.",
-    "..333333333333..",
-    "..311111111113..",
-    "..313111111313..",
-    "..311113311113..",
-    "..321111111123..",
-    ".32222222222223.",
-    ".31111222211113.",
-    ".31111222211113.",
-    ".31111111111113.",
-    "..313......313..",
-    "..333......333..",
-    "................",
+    "..k..........k..",
+    ".ksk........ksk.",
+    ".kspk......kpsk.",
+    "..kssssssssssk..",
+    "..ksttttttttsk..",
+    "..kttkttttkttk..",
+    "..ktssskksssk...",
+    "..ksttckcttsk...",
+    "..kruwuruwurk...",
+    ".kssssttttssssk.",
+    ".kstttcccctttsk.",
+    ".ksttccccccttsk.",
+    ".kttccccccccttk.",
+    "..ktk......ktk..",
+    "..kkk......kkk..",
 ]
 
-DOWN_WALK = DOWN_STAND[:13] + [
-    ".313........313.",
-    ".333........333.",
-    "................",
+DOWN_WALK = DOWN_STAND[:14] + [
+    ".ktk........ktk.",
+    ".kkk........kkk.",
 ]
 
 UP_STAND = [
     "................",
-    "..3..........3..",
-    ".323........323.",
-    ".3223......3223.",
-    "..333333333333..",
-    "..311111111113..",
-    "..311111111113..",
-    "..311111111113..",
-    "..321111111123..",
-    ".32222222222223.",
-    ".31122222222113.",
-    ".31122222222113.",
-    ".31111111111113.",
-    "..313..33..313..",
-    "..333..33..333..",
-    "................",
+    "..k..........k..",
+    ".ksk........ksk.",
+    ".kssk......kssk.",
+    "..kkkkkkkkkkkk..",
+    "..kssssssssssk..",
+    "..kssssssssssk..",
+    "..kssssssssssk..",
+    "..kssssssssssk..",
+    "..kruwuruwurk...",
+    ".kssssssssssssk.",
+    ".kssssssssssssk.",
+    ".kttssssssssttk.",
+    ".kttk..ss..kttk.",
+    "..kkk..ss..kkk..",
+    ".......kk.......",
 ]
 
 UP_WALK = UP_STAND[:13] + [
-    ".313...33...313.",
-    ".333...33...333.",
-    "................",
+    ".ktk...ss...ktk.",
+    ".kkk...ss...kkk.",
+    ".......kk.......",
 ]
 
-# Left = side view: snout poking left, one ear, a big sagging belly, the
-# tail curled up at the rear. Right-facing frames are engine flips.
+# Left = side view: long muzzle poking left with the dark mask, one upright
+# ear, the saddle mantle over the back, a big sagging cream belly, the tail
+# hanging low behind. Right-facing frames are engine flips.
 LEFT_STAND = [
     "................",
-    "....33..........",
-    "...323..........",
-    "..33333.........",
-    ".3111113........",
-    ".3131113........",
-    "33111113........",
-    ".31111233.....33",
-    "..3222222222233.",
-    ".31112222222223.",
-    ".31111222222223.",
-    ".31111111112223.",
-    ".31111111111113.",
-    "..311......311..",
-    "..333......333..",
+    "....kk..........",
+    "...ksk..........",
+    "..kssk..........",
+    ".ksttsk.........",
+    ".ktkttk.........",
+    "kksttttk........",
+    ".kttttskk....kk.",
+    "..kruwkssssskssk",
+    ".kstttttssssssk.",
+    ".ktttttttsssssk.",
+    ".kctttttttttsk..",
+    ".kccttttttttk...",
+    "..ktk.....ktk...",
+    "..kkk.....kkk...",
     "................",
 ]
 
 LEFT_WALK = LEFT_STAND[:13] + [
-    ".311........311.",
-    ".333........333.",
+    ".ktk.......ktk..",
+    ".kkk.......kkk..",
     "................",
 ]
 
 WALKER_FRAMES = [DOWN_STAND, UP_STAND, LEFT_STAND, DOWN_WALK, UP_WALK, LEFT_WALK]
 
 
-def grid_to_image(grid, transparent_white=False):
+def grid_to_image(grid):
     h, w = len(grid), len(grid[0])
     img = Image.new("RGBA", (w, h))
     px = img.load()
     for y, row in enumerate(grid):
         assert len(row) == w, "row %d has %d cols, want %d" % (y, len(row), w)
         for x, ch in enumerate(row):
-            v = SHADE[ch]
-            a = 0 if (transparent_white and ch == ".") else 255
-            px[x, y] = (v, v, v, a)
+            px[x, y] = PAL[ch]
     return img
 
 
 def make_walker():
-    sheet = Image.new("RGBA", (16, 96), (255, 255, 255, 255))
+    sheet = Image.new("RGBA", (16, 96), (0, 0, 0, 0))
     for i, frame in enumerate(WALKER_FRAMES):
         assert len(frame) == 16, "frame %d has %d rows" % (i, len(frame))
         sheet.paste(grid_to_image(frame), (0, i * 16))
@@ -136,107 +150,124 @@ def make_walker():
 
 # ---------------------------------------------------------------- shapes
 
-L = (176, 176, 176, 255)
-D = (96, 96, 96, 255)
-B = (0, 0, 0, 255)
+T, C, S, B, K = PAL["t"], PAL["c"], PAL["s"], PAL["b"], PAL["k"]
+P, R, W, U, G, GD, E = (PAL[ch] for ch in "prwugGe")
 
 
-def snap_shades(img, transparent_white):
-    """Clamp every pixel to the 4 legal grays; optionally keep white clear."""
-    px = img.load()
-    w, h = img.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = px[x, y]
-            if a == 0:
-                px[x, y] = (255, 255, 255, 0 if transparent_white else 255)
-                continue
-            v = min((255, 176, 96, 0), key=lambda s: abs(s - r))
-            if v == 255 and transparent_white:
-                px[x, y] = (255, 255, 255, 0)
-            else:
-                px[x, y] = (v, v, v, 255)
-    return img
+def dither_edge(px, box, a, b):
+    """A 1px checker seam between two fur colors -- cheap fur texture."""
+    x0, y0, x1, y1 = box
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            if 0 <= x < 56 and 0 <= y < 56 and px[x, y][:3] == a[:3]:
+                if (x + y) % 2 == 0:
+                    px[x, y] = b
 
 
 def stink_wisps(d, spots):
-    """The famous royal stench, rising as wavy lines."""
+    """The famous royal stench, rising as sickly green waves."""
     for x0, y0 in spots:
         d.line([(x0, y0), (x0 + 2, y0 - 4), (x0, y0 - 8), (x0 + 2, y0 - 12)],
-               fill=D)
+               fill=E)
+        d.point([(x0 + 1, y0 - 13)], fill=E)
 
 
 # ------------------------------------------------------------- battle back
 
 def make_back():
-    """32x32, from behind: round rear, saddle across the back, ears poking
-    over the head, stink wisps. Drawn opaque on white like extracted pics."""
-    img = Image.new("RGBA", (32, 32), (255, 255, 255, 255))
+    """32x32, from behind: round rear, the dark mantle across the back,
+    ears over the head, the Slovak collar peeking out, stink wisps."""
+    img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    # the enormous rear/body
-    d.ellipse([3, 14, 28, 31], fill=L, outline=B)
-    # saddle marking across the back
-    d.ellipse([7, 15, 24, 25], fill=D)
-    # head from behind, overlapping the body top
-    d.ellipse([9, 5, 22, 18], fill=L, outline=B)
-    d.chord([9, 5, 22, 18], 180, 360, fill=D, outline=B)  # dark head top
+    # the enormous rear
+    d.ellipse([3, 14, 28, 31], fill=T, outline=K)
+    # dark mantle across back and shoulders
+    d.ellipse([6, 14, 25, 26], fill=S)
+    # head from behind
+    d.ellipse([9, 5, 22, 18], fill=S, outline=K)
+    # collar between head and shoulders
+    d.line([(10, 16), (21, 16)], fill=R)
+    d.line([(10, 17), (21, 17)], fill=W)
+    d.line([(11, 18), (20, 18)], fill=U)
     # ears
-    d.polygon([(10, 8), (8, 1), (15, 5)], fill=D, outline=B)
-    d.polygon([(21, 8), (23, 1), (16, 5)], fill=D, outline=B)
-    # tail curled at the right hip
-    d.arc([24, 16, 31, 25], 270, 90, fill=B)
-    d.arc([25, 17, 30, 24], 270, 90, fill=D)
-    # hind paws peeking out at the bottom
-    d.rectangle([7, 29, 11, 31], fill=L, outline=B)
-    d.rectangle([20, 29, 24, 31], fill=L, outline=B)
+    d.polygon([(10, 8), (8, 1), (15, 5)], fill=S, outline=K)
+    d.polygon([(21, 8), (23, 1), (16, 5)], fill=S, outline=K)
+    d.polygon([(11, 6), (10, 3), (14, 5)], fill=P)
+    d.polygon([(20, 6), (21, 3), (17, 5)], fill=P)
+    # tail hanging at the right hip, tan tip
+    d.line([(26, 20), (28, 24), (27, 29)], fill=S, width=2)
+    d.point([(27, 30), (28, 30)], fill=T)
+    # tan haunches
+    d.ellipse([4, 24, 10, 30], fill=T)
+    d.ellipse([21, 24, 27, 30], fill=T)
+    # hind paws
+    d.rectangle([7, 29, 11, 31], fill=T, outline=K)
+    d.rectangle([20, 29, 24, 31], fill=T, outline=K)
 
-    stink_wisps(d, [(2, 13), (28, 12)])
-    snap_shades(img, transparent_white=False)
+    stink_wisps(d, [(2, 14), (29, 13)])
     img.save(os.path.join(OUT, "priston_back.png"))
 
 
 # ------------------------------------------------------------- front pic
 
 def make_front():
-    """56x56 portrait for Oak's intro, the trainer card and the Hall of
-    Fame: PRISTON sitting proudly, slightly too wide for the frame, wearing
-    the small crooked crown he refused to give back."""
-    img = Image.new("RGBA", (56, 56), (255, 255, 255, 0))
+    """56x56 portrait: PRISTON sitting, slightly too wide for the frame --
+    dark saddle mantle, tan brows on the dark forehead, black muzzle mask,
+    cream chest, the tricolor collar, and the small crooked gold crown."""
+    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
     # body: a big rounded mass, wider than tall
-    d.ellipse([6, 26, 49, 54], fill=L, outline=B)
-    # chest
-    d.ellipse([20, 34, 35, 52], fill=D)
-    d.ellipse([22, 38, 33, 52], fill=L)
-    # front legs
-    d.rectangle([15, 44, 20, 54], fill=L, outline=B)
-    d.rectangle([35, 44, 40, 54], fill=L, outline=B)
+    d.ellipse([6, 27, 49, 54], fill=T, outline=K)
+    # dark mantle over the shoulders
+    d.chord([6, 27, 49, 54], 180, 360, fill=S, outline=K)
+    # cream chest, sagging over the belly
+    d.ellipse([19, 32, 36, 54], fill=C, outline=K)
+    # front legs over the chest
+    d.rectangle([15, 44, 20, 54], fill=T, outline=K)
+    d.rectangle([35, 44, 40, 54], fill=T, outline=K)
 
-    # ears first, so the head outline sits cleanly on top of their bases
-    d.polygon([(16, 18), (11, 3), (24, 12)], fill=L, outline=B)
-    d.polygon([(16, 15), (14, 7), (21, 12)], fill=D)
-    d.polygon([(39, 18), (44, 3), (31, 12)], fill=L, outline=B)
-    d.polygon([(39, 15), (41, 7), (34, 12)], fill=D)
+    # ears first, so the head outline sits cleanly on their bases
+    d.polygon([(16, 18), (11, 3), (24, 12)], fill=S, outline=K)
+    d.polygon([(16, 15), (14, 7), (21, 12)], fill=P)
+    d.polygon([(39, 18), (44, 3), (31, 12)], fill=S, outline=K)
+    d.polygon([(39, 15), (41, 7), (34, 12)], fill=P)
     # head
-    d.ellipse([15, 12, 40, 34], fill=L, outline=B)
+    d.ellipse([15, 12, 40, 34], fill=T, outline=K)
+    # dark forehead cap
+    d.chord([15, 12, 40, 30], 180, 360, fill=S)
+    # tan brows on the dark cap
+    d.rectangle([20, 17, 24, 18], fill=T)
+    d.rectangle([31, 17, 35, 18], fill=T)
     # eyes
-    d.rectangle([21, 19, 23, 22], fill=B)
-    d.rectangle([32, 19, 34, 22], fill=B)
-    # muzzle
-    d.ellipse([22, 23, 33, 33], fill=L, outline=B)
-    d.rectangle([26, 24, 29, 27], fill=B)  # nose
-    d.line([(27, 27), (27, 30)], fill=B)
-    d.line([(24, 31), (31, 31)], fill=B)  # mouth
+    d.rectangle([21, 19, 23, 22], fill=K)
+    d.rectangle([32, 19, 34, 22], fill=K)
+    d.point([(22, 20), (33, 20)], fill=W)  # catchlight
+    # muzzle: dark mask with a cream lower jaw
+    d.ellipse([22, 23, 33, 33], fill=B, outline=K)
+    d.ellipse([24, 28, 31, 33], fill=C)
+    d.rectangle([26, 24, 29, 27], fill=K)  # nose
+    d.line([(27, 27), (27, 30)], fill=K)
+    d.line([(24, 31), (31, 31)], fill=K)  # mouth
 
-    # the small crooked crown, centered between the ears, one spike bent
+    # collar between head and chest
+    d.line([(19, 34), (36, 34)], fill=R)
+    d.line([(18, 35), (37, 35)], fill=W)
+    d.line([(19, 36), (36, 36)], fill=U)
+
+    # the small crooked gold crown, one spike bent
     d.polygon([(22, 11), (22, 6), (24, 1), (26, 6), (28, 0), (30, 6),
-               (33, 2), (33, 11)], fill=D, outline=B)
-    d.line([(22, 11), (33, 11)], fill=B)
+               (33, 2), (33, 11)], fill=G, outline=K)
+    d.line([(22, 11), (33, 11)], fill=K)
+    d.point([(24, 8), (28, 7), (32, 8)], fill=GD)
 
-    stink_wisps(d, [(2, 24), (49, 24), (6, 32), (46, 34)])
-    snap_shades(img, transparent_white=True)
+    # fur texture: dither the saddle/tan seams
+    px = img.load()
+    dither_edge(px, (7, 38, 48, 41), T, S)
+    dither_edge(px, (16, 28, 39, 30), T, S)
+
+    stink_wisps(d, [(2, 26), (50, 26), (6, 36), (48, 38)])
     img.save(os.path.join(OUT, "priston_front.png"))
 
 

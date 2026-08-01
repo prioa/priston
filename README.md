@@ -16,9 +16,14 @@ POKEPORT_DEV=1 love .        # F10: Mod-Manager, priston aktivieren, NEW GAME
 
 ## Was drin ist
 
-- `SPRITE_PRISTON`: eigenes 6-Frame-Walker-Sheet (watschelnder Gang)
+- `SPRITE_PRISTON`: eigenes 6-Frame-Walker-Sheet (watschelnder Gang) in
+  GBA-Farben mit echtem Alpha (`trueColor`, kein Graustufen-Remap)
 - `field.playerPics`: Rueckenansicht im Kampf + Portrait (Intro, Trainer
-  Card, Ruhmeshalle) mit schiefer Krone und Stinklinien
+  Card, Ruhmeshalle) -- Schaeferhund-Farben, Trikolore-Halsband, schiefe
+  Goldkrone, gruene Stinkschwaden
+- Option **SLOWAKEI-LOOK** (standardmaessig an): kuehles Tatra-Color-
+  Grading aller Map-Paletten ueber den `map.palette`-Hook; Vanilla-
+  Paletten bleiben unangetastet
 - Deutsches Intro: vier neue Story-Steps (Hof, Verbannung, Ehrenschwur als
   Ja/Nein-Frage, Antwort landet in `mod.save`), Rivale = GASTON, der neue
   Liebling des Hofes

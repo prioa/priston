@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Komplett ueberarbeitete Grafiken: GBA-Farben (Schaeferhund-Tan,
+  Sattel-Braun, schwarze Schnauzen-Maske) mit echtem Alpha statt
+  Weiss-Keying; trueColor nimmt sie vom 4-Graustufen-Remap aus.
+- Slowakisches Trikolore-Halsband, goldene Krone, gruene Stinkschwaden.
+- Neu: SLOWAKEI-LOOK (Option, standardmaessig an) -- alle Map-Paletten
+  bekommen ein kuehles Tatra-Color-Grading ueber den map.palette-Hook.
+
 ## 0.1.0
 
 - Erstversion: PRISTON als spielbarer Charakter (Walker-Sheet,
