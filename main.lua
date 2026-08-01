@@ -22,9 +22,23 @@ return function(mod)
     trueColor = true,
   })
 
-  -- patch, nicht override: surf/bike/fly bleiben Vanilla, nur das Laufen
-  -- gehoert PRISTON
-  mod.content.field:patch("playerSprites", { walk = "SPRITE_PRISTON" })
+  mod.content.sprites:register("SPRITE_PRISTON_BIKE", {
+    id = "SPRITE_PRISTON_BIKE",
+    image = mod.path .. "/assets/priston_bike.png",
+    frames = 6, walker = true, trueColor = true,
+  })
+  mod.content.sprites:register("SPRITE_PRISTON_SURF", {
+    id = "SPRITE_PRISTON_SURF",
+    image = mod.path .. "/assets/priston_surf.png",
+    frames = 6, walker = true, trueColor = true,
+  })
+
+  -- patch, nicht override: fly bleibt Vanilla (der Vogel traegt ihn)
+  mod.content.field:patch("playerSprites", {
+    walk = "SPRITE_PRISTON",
+    bike = "SPRITE_PRISTON_BIKE",
+    surf = "SPRITE_PRISTON_SURF",
+  })
   mod.content.field:patch("playerPics", { back = back, front = front })
 
   -- playerPics kennt kein trueColor-Feld; der Hook ist der sanktionierte
@@ -39,6 +53,49 @@ return function(mod)
     end
     return out
   end)
+
+  -- ------- echte Umlaute: eigene Font-Seite oberhalb der Vanilla-Codes
+  -- (Basis 0x120; die Kana-Beispielseite der Doku liegt bei 0x100)
+  mod.content.font:register("priston_umlauts", {
+    image = mod.path .. "/assets/priston_font.png",
+    base = 0x120,
+    glyphsPerRow = 7,
+    charmap = {
+      { seq = "\195\164", code = 0x120 },  -- ae
+      { seq = "\195\182", code = 0x121 },  -- oe
+      { seq = "\195\188", code = 0x122 },  -- ue
+      { seq = "\195\132", code = 0x123 },  -- AE
+      { seq = "\195\150", code = 0x124 },  -- OE
+      { seq = "\195\156", code = 0x125 },  -- UE
+      { seq = "\195\159", code = 0x126 },  -- sz
+    },
+  })
+
+  -- ------- die Hymne: "Nad Tatrou sa blyska" fuer Pallet Town
+  -- Volksweise (gemeinfrei), eigenes Arrangement in hymna.lua; mod:read +
+  -- load haelt sie durch das Loader-Dateisystem addressierbar (Jukebox-
+  -- Muster), damit die installierte Mod identisch laeuft wie im Repo.
+  local hymnaSource = mod:read("hymna.lua")
+  if hymnaSource then
+    local chunk, hymnaErr = load(hymnaSource, "@" .. mod.path .. "/hymna.lua")
+    local okSong, song = false, nil
+    if chunk then okSong, song = pcall(chunk) end
+    if okSong and song then
+      mod.content.music:register("Music_PristonHymna", song)
+      mod.hooks:wrap("music.select", function(next, chosen, ctx)
+        if ctx and ctx.reason == "map" and ctx.mapId == "PALLET_TOWN" then
+          return next("Music_PristonHymna", ctx)
+        end
+        return next(chosen, ctx)
+      end)
+    else
+      mod.log:warn("hymna.lua baut nicht (%s) -- Pallet Town behaelt sein "
+        .. "Vanilla-Thema", tostring(song or hymnaErr))
+    end
+  else
+    mod.log:warn("hymna.lua fehlt im Mod-Ordner -- Pallet Town behaelt "
+      .. "sein Vanilla-Thema")
+  end
 
   -- ------- animierte Stinkwolken
   -- 4-Frame-Sheet (assets/priston_stink.png); Overworld zeichnet sie ueber
@@ -141,7 +198,8 @@ return function(mod)
         end
         -- die koeniglichen Schwaden steigen ueber dem Hund auf, im selben
         -- Post-Zonen-Replay, damit das Gruen die Zonenfaerbung ueberlebt
-        if def.id == "SPRITE_PRISTON" then
+        if type(def.id) == "string"
+           and def.id:sub(1, 14) == "SPRITE_PRISTON" then
           local img, quads = stinkImage()
           if img then
             PaletteFX.markSpriteRedraw(img, quads[stinkFrame()], x, y - 12, 1)
@@ -405,15 +463,15 @@ return function(mod)
       reveal = "fade",
       cry = "PRISTON",
       text = "Dies ist PRISTON.\f"
-        .. "Ein SCHAEFERHUND\naus der SLOWAKEI.\f"
+        .. "Ein SCHÄFERHUND\naus der SLOWAKEI.\f"
         .. "Ein stattlicher\nHund. Sehr...\vstattlich.",
     })
     mod.ui.insertStepAfter(steps, "priston_reveal", {
       id = "priston_story",
       kind = "say",
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
-      text = "PRISTON lebte am\nKOENIGSHOF der\vSLOWAKEI.\f"
-        .. "Samtkissen!\nLeckerli!\vEin Butler nur\vfuer ihn!\f"
+      text = "PRISTON lebte am\nKÖNIGSHOF der\vSLOWAKEI.\f"
+        .. "Samtkissen!\nLeckerli!\vEin Butler nur\vfür ihn!\f"
         .. "Doch dann kam der\nschwarze Tag...",
     })
     mod.ui.insertStepAfter(steps, "priston_story", {
@@ -422,14 +480,14 @@ return function(mod)
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       text = "Der Hof hat ihn\nVERBANNT!\f"
         .. "Der Grund...\fEr STINKT.\f"
-        .. "Kein Bad half.\nKein Parfuem.\vNichts half.",
+        .. "Kein Bad half.\nKein Parfüm.\vNichts half.",
     })
     mod.ui.insertStepAfter(steps, "priston_banished", {
       id = "priston_oath",
       kind = "yesno",
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       saveKey = "ehre_schwur",
-      text = "PRISTON!\nWirst du deine\vEHRE zurueck-\verobern?",
+      text = "PRISTON!\nWirst du deine\vEHRE zurück-\verobern?",
     })
 
     byId.ask_player_name.text = "Doch zuerst...\f"
@@ -438,13 +496,13 @@ return function(mod)
     byId.name_player.presets = { "PRISTON", "SMRAD", "BOBIK" }
 
     byId.ask_rival_name.text = "Das ist GASTON.\nDer neue LIEBLING\vdes Hofes.\f"
-      .. "SEIN Ruecken wird\ngekrault.\f"
-      .. "Und ER hat deine\nVerbannung\veingefaedelt!"
+      .. "SEIN Rücken wird\ngekrault.\f"
+      .. "Und ER hat deine\nVerbannung\veingefädelt!"
     byId.name_rival.title = "SEIN NAME?"
     byId.name_rival.presets = { "GASTON", "FIFI", "LORD" }
 
     byId.legend.text = "{PLAYER}!\nDeine Reise\vbeginnt jetzt!\f"
-      .. "Hol dir die EHRE\ndes Koenigshauses\vzurueck!\f"
+      .. "Hol dir die EHRE\ndes Königshauses\vzurueck!\f"
       .. "Und vielleicht...\nein Bad."
 
     return steps

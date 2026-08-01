@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+- Echte Umlaute: eigene Font-Seite (ä ö ü Ä Ö Ü ß, Basis 0x120) plus
+  Intro-Texte mit richtiger Schreibung (SCHÄFERHUND, KÖNIGSHOF, ...).
+- PRISTON faehrt Rad und schwimmt: eigene 6-Frame-Walker fuer
+  playerSprites.bike und .surf (fly bleibt der Vanilla-Vogel).
+- "Nad Tatrou sa blyska" (Volksweise, gemeinfrei) als eigenes
+  ChipAsm-Arrangement -- Pallet Town spielt jetzt PRISTONs Heimweh.
+- Stinkwolken steigen auch beim Radfahren und Schwimmen auf.
+
 ## 0.4.0
 
 - Animierte Stinkwolken: 4-Frame-Sheet, im Overworld ueber den

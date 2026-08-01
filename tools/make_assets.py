@@ -273,6 +273,168 @@ def make_front():
     img.save(os.path.join(OUT, "priston_front.png"))
 
 
+UMLAUTS = {
+    # 8x8-Zellen, Gen-1-artige 7-breite Glyphen, Tinte schwarz auf
+    # transparent (wie die extrahierten Font-Seiten der Engine)
+    "ae": [
+        ".x...x..",
+        "........",
+        ".xxxx...",
+        ".....x..",
+        ".xxxxx..",
+        "x....x..",
+        ".xxxxx..",
+        "........",
+    ],
+    "oe": [
+        ".x...x..",
+        "........",
+        ".xxxx...",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        ".xxxx...",
+        "........",
+    ],
+    "ue": [
+        ".x...x..",
+        "........",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        "x...xx..",
+        ".xxx.x..",
+        "........",
+    ],
+    "AE": [
+        ".x...x..",
+        ".xxxx...",
+        "x....x..",
+        "x....x..",
+        "xxxxxx..",
+        "x....x..",
+        "x....x..",
+        "........",
+    ],
+    "OE": [
+        ".x...x..",
+        ".xxxx...",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        ".xxxx...",
+        "........",
+    ],
+    "UE": [
+        ".x...x..",
+        "........",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        "x....x..",
+        ".xxxx...",
+        "........",
+    ],
+    "sz": [
+        ".xxx....",
+        "x...x...",
+        "x..x....",
+        "x...x...",
+        "x....x..",
+        "x.x.x...",
+        "x..x....",
+        "x.......",
+    ],
+}
+UMLAUT_ORDER = ["ae", "oe", "ue", "AE", "OE", "UE", "sz"]
+
+
+def make_font():
+    """56x8: sieben 8x8-Glyphen (ä ö ü Ä Ö Ü ß) als eigene Font-Seite."""
+    sheet = Image.new("RGBA", (8 * len(UMLAUT_ORDER), 8), (0, 0, 0, 0))
+    px = sheet.load()
+    for i, key in enumerate(UMLAUT_ORDER):
+        grid = UMLAUTS[key]
+        for y, row in enumerate(grid):
+            assert len(row) == 8, (key, y)
+            for x, ch in enumerate(row):
+                if ch == "x":
+                    px[i * 8 + x, y] = (0, 0, 0, 255)
+    sheet.save(os.path.join(OUT, "priston_font.png"))
+
+
+def _walker_frame(name):
+    idx = {"down": 0, "up": 1, "left": 2}[name]
+    return grid_to_image(WALKER_FRAMES[idx])
+
+
+def make_bike():
+    """16x96-Walker: PRISTON auf einem viel zu kleinen Fahrrad.
+    Oberkoerper aus dem Lauf-Sheet, Rahmen und Raeder gezeichnet;
+    Walk-Frames drehen die Pedale."""
+    sheet = Image.new("RGBA", (16, 96), (0, 0, 0, 0))
+    for f, (view, pedal) in enumerate([("down", 0), ("up", 0), ("left", 0),
+                                       ("down", 1), ("up", 1), ("left", 1)]):
+        frame = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        d = ImageDraw.Draw(frame)
+        src = _walker_frame(view)
+        if view in ("down", "up"):
+            # nur der Kopf (Reihen 0-8), damit kein Schulter-Kasten entsteht
+            frame.paste(src.crop((0, 0, 16, 9)), (0, 0), src.crop((0, 0, 16, 9)))
+            # Lenker mit Griffen, Pfoten liegen auf
+            d.line([(2, 10), (13, 10)], fill=K)
+            d.point([(2, 9), (13, 9)], fill=K)
+            d.point([(5, 10), (10, 10)], fill=T)
+            # Vorderrad frontal: schmal und hoch, mit Schutzblech-Punkt
+            d.ellipse([6, 11, 9, 15], outline=K)
+            d.point([(7, 11), (8, 11)], fill=(112, 70, 34, 255))
+        else:
+            # Seitenansicht: Kopf/Ruecken (Reihen 1-9, Spalten 0-11)
+            frame.paste(src.crop((0, 1, 12, 10)), (1, 0), src.crop((0, 1, 12, 10)))
+            # Raeder
+            d.ellipse([1, 10, 6, 15], outline=K)
+            d.ellipse([9, 10, 14, 15], outline=K)
+            # Rahmen + Sattelstange
+            d.line([(4, 12), (8, 9)], fill=K)
+            d.line([(8, 9), (11, 12)], fill=K)
+            # Pedale: zwei Stellungen
+            if pedal == 0:
+                d.point([(7, 12), (8, 13)], fill=K)
+            else:
+                d.point([(8, 12), (7, 13)], fill=K)
+        sheet.paste(frame, (0, f * 16))
+    sheet.save(os.path.join(OUT, "priston_bike.png"))
+
+
+def make_surf():
+    """16x96-Walker: PRISTON schwimmt -- Kopf und Ruecken ueber Wasser,
+    kleine Gischt; Walk-Frames wechseln die Paddel-Gischt."""
+    W1 = (200, 228, 255, 255)
+    W2 = (150, 196, 240, 255)
+    sheet = Image.new("RGBA", (16, 96), (0, 0, 0, 0))
+    for f, (view, phase) in enumerate([("down", 0), ("up", 0), ("left", 0),
+                                       ("down", 1), ("up", 1), ("left", 1)]):
+        frame = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        d = ImageDraw.Draw(frame)
+        src = _walker_frame(view)
+        if view in ("down", "up"):
+            frame.paste(src.crop((0, 0, 16, 9)), (0, 2), src.crop((0, 0, 16, 9)))
+            # Ruecken/Rumpf als flache Insel ueber Wasser
+            d.ellipse([2, 10, 13, 14], fill=(82, 55, 36, 255), outline=K)
+        else:
+            frame.paste(src.crop((0, 1, 10, 9)), (2, 1), src.crop((0, 1, 10, 9)))
+            d.ellipse([3, 9, 14, 13], fill=(82, 55, 36, 255), outline=K)
+        # Wasserlinie + Gischt, zwei Phasen
+        y = 14
+        for x in range(0, 16, 2):
+            off = (x // 2 + phase) % 2
+            d.point([(x, y + off), (x + 1, y + off)], fill=W1)
+        d.point([(1, 12 + phase), (14, 13 - phase)], fill=W2)
+        sheet.paste(frame, (0, f * 16))
+    sheet.save(os.path.join(OUT, "priston_surf.png"))
+
+
 def make_stink():
     """16x64: vier 16x16-Frames aufsteigender gruener Stinkschwaden.
     Zwei Wellenlinien mit Phasenversatz pro Frame; Alpha nimmt nach oben
@@ -299,4 +461,7 @@ if __name__ == "__main__":
     make_back()
     make_front()
     make_stink()
+    make_font()
+    make_bike()
+    make_surf()
     print("wrote priston_walk.png, priston_back.png, priston_front.png")

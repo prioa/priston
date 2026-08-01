@@ -74,6 +74,18 @@ T.check(#presets.player > 3, "vanilla player presets survive the prepend")
 T.check(Data.audio and Data.audio.cries and Data.audio.cries.PRISTON ~= nil,
   "PRISTON cry registered")
 
+-- ------- Rad, Wasser, Hymne, Umlaute
+
+T.check(Data.sprites.SPRITE_PRISTON_BIKE ~= nil, "bike walker registered")
+T.check(Data.sprites.SPRITE_PRISTON_SURF ~= nil, "surf walker registered")
+T.eq(Data.field.playerSprites.bike, "SPRITE_PRISTON_BIKE", "bike mapped")
+T.eq(Data.field.playerSprites.surf, "SPRITE_PRISTON_SURF", "surf mapped")
+T.check(Data.field.playerSprites.fly ~= "SPRITE_PRISTON", "fly stays vanilla")
+T.check(Data.audio and Data.audio.songs
+        and Data.audio.songs.Music_PristonHymna ~= nil, "anthem registered")
+T.check(Data.font and Data.font.pages
+        and Data.font.pages.priston_umlauts ~= nil, "umlaut font page registered")
+
 -- ------- die TATRA-Pipeline ist registriert
 
 local tatra = Data.render_pipelines and Data.render_pipelines.tatra
