@@ -40,6 +40,64 @@ return function(mod)
     return out
   end)
 
+  -- Overworld-Fix fuer trueColor-Walker (engine_internals): markTrueColor
+  -- nimmt das ganze 16x16-Feld vom SGB-Zonen-Shader aus, wodurch unter den
+  -- transparenten Pixeln die UNgefaerbte Welt (DMG-Weiss) durchscheint --
+  -- der beruechtigte weisse Kasten. Stattdessen zeichnen wir wie vanilla,
+  -- lassen den Zonen-Shader normal laufen und replayen die Farbversion
+  -- danach obendrauf (PaletteFX.markSpriteRedraw) -- derselbe Mechanismus,
+  -- den der OG-RED-Modus fuer seine Objekt-Farben nutzt.
+  mod.events:on("game.ready", function()
+    local okPatch, patchErr = pcall(function()
+      local SpriteRenderer = require("src.render.SpriteRenderer")
+      local PaletteFX = require("src.render.PaletteFX")
+      if SpriteRenderer.__priston_truecolor_fix then return end
+      SpriteRenderer.__priston_truecolor_fix = true
+      local vanillaDraw = SpriteRenderer.draw
+      -- Frame-Layout des 6-Frame-Walkers (SpriteRenderer.lua Kopfkommentar):
+      -- 0-2 stehen unten/oben/links, 3-5 gehen; rechts = gespiegelt links
+      local STAND = { down = 0, up = 1, left = 2, right = 2 }
+      local WALK = { down = 3, up = 4, left = 5, right = 5 }
+      local noop = function() end
+      SpriteRenderer.draw = function(self, px, py, camX, camY, facing,
+                                     walkPhase, stepFlip, topHalf)
+        local def = self.def
+        if not (def and def.trueColor and def.walker and def.frames
+                and def.frames > 1 and PaletteFX.spriteRedrawPassActive()) then
+          return vanillaDraw(self, px, py, camX, camY, facing,
+                             walkPhase, stepFlip, topHalf)
+        end
+        local mark = PaletteFX.markTrueColor
+        PaletteFX.markTrueColor = noop
+        local okDraw, drawErr = pcall(vanillaDraw, self, px, py, camX, camY,
+                                      facing, walkPhase, stepFlip, topHalf)
+        PaletteFX.markTrueColor = mark
+        if not okDraw then error(drawErr, 0) end
+        local x = math.floor(px - camX)
+        local y = math.floor(py - camY) - 4
+        local frame = (walkPhase == 1) and WALK[facing] or STAND[facing]
+        local flip = facing == "right"
+          or ((facing == "down" or facing == "up") and walkPhase == 1
+              and stepFlip)
+        local quad = self.frames and (self.frames[frame] or self.frames[0])
+        if topHalf and self.halfFrames then
+          quad = self.halfFrames[frame] or quad
+        end
+        if not quad then return end
+        if flip then
+          PaletteFX.markSpriteRedraw(self.image, quad, x + 16, y, -1)
+        else
+          PaletteFX.markSpriteRedraw(self.image, quad, x, y, 1)
+        end
+      end
+    end)
+    if not okPatch then
+      mod.log:warn("trueColor-Walker-Fix nicht installierbar (%s) -- der "
+        .. "Sprite bekommt in SGB-Farbmodi einen weissen Kasten",
+        tostring(patchErr))
+    end
+  end)
+
   -- __prepend statt Listen-Ersatz: die Vanilla-Namen bleiben waehlbar,
   -- PRISTON steht nur zuerst
   mod.content.field:patch("boot", {
@@ -128,13 +186,22 @@ return function(mod)
     canvas = nil, cw = 0, ch = 0,
   }
 
+  -- rect = Spielfeld in tc-Koordinaten (x, y, w, h); w <= 0 heisst
+  -- "unbekannt, ganze Flaeche". Alles ausserhalb bleibt unangetastet,
+  -- damit die Letterbox pechschwarz bleibt und die Vignette sich auf das
+  -- Spielfeld zentriert statt auf das Fenster.
   local TATRA_SHADER = [[
     uniform float strength;
     uniform float time;
     uniform float vig;
     uniform float grain;
+    uniform vec4 rect;
     vec4 effect(vec4 color, Image tex, vec2 tc, vec2 sc) {
       vec4 px = Texel(tex, tc);
+      vec2 q = rect.z > 0.0 ? (tc - rect.xy) / rect.zw : tc;
+      float inside = rect.z > 0.0
+        ? step(0.0, q.x) * step(q.x, 1.0) * step(0.0, q.y) * step(q.y, 1.0)
+        : 1.0;
       vec3 c = px.rgb;
       // kuehle Weissbalance: Tatra-Morgenlicht
       c *= mix(vec3(1.0), vec3(0.90, 0.97, 1.10), strength);
@@ -145,16 +212,26 @@ return function(mod)
       float luma = dot(c, vec3(0.299, 0.587, 0.114));
       c += (1.0 - luma) * strength * vec3(-0.030, 0.005, 0.060);
       c += luma * strength * vec3(0.035, 0.012, -0.020);
-      // Vignette
-      vec2 d = tc - vec2(0.5);
+      // Vignette, zentriert auf das Spielfeld
+      vec2 d = q - vec2(0.5);
       c *= 1.0 - vig * strength * dot(d, d) * 1.2;
       // Filmkorn
       float n = fract(sin(dot(sc + vec2(time * 61.7, time * 12.9),
                               vec2(12.9898, 78.233))) * 43758.5453);
       c += (n - 0.5) * grain * strength;
-      return vec4(clamp(c, 0.0, 1.0), px.a) * color;
+      return vec4(mix(px.rgb, clamp(c, 0.0, 1.0), inside), px.a) * color;
     }
   ]]
+
+  -- render.hud liefert jedes Frame das Spielfeld-Rechteck in denselben
+  -- Fenster-Pixeln, in denen der present-Pass arbeitet (Renderer:endFrame
+  -- gibt dieselbe Tabelle an den Hook weiter)
+  mod.hooks:wrap("render.hud", function(next, game, viewport)
+    if type(viewport) == "table" and viewport.width then
+      TATRA.viewport = viewport
+    end
+    return next(game, viewport)
+  end)
 
   local function tatraShader()
     if TATRA.shader == nil then
@@ -199,6 +276,13 @@ return function(mod)
       pcall(sh.send, sh, "vig", preset.vig)
       pcall(sh.send, sh, "grain", preset.grain)
       pcall(sh.send, sh, "time", TATRA.time)
+      local vp = TATRA.viewport
+      if vp and vp.width == w and vp.gameWidth and vp.gameWidth > 0 then
+        pcall(sh.send, sh, "rect", { vp.gameX / w, vp.gameY / h,
+                                     vp.gameWidth / w, vp.gameHeight / h })
+      else
+        pcall(sh.send, sh, "rect", { 0, 0, -1, -1 })
+      end
       local ok = pcall(function()
         love.graphics.setCanvas(TATRA.canvas)
         love.graphics.draw(canvas)
@@ -259,7 +343,7 @@ return function(mod)
     mod.ui.insertStepAfter(steps, "world_spiel", {
       id = "priston_reveal",
       kind = "say",
-      pic = { type = "image", path = front },
+      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       reveal = "fade",
       cry = "PRISTON",
       text = "Dies ist PRISTON.\f"
@@ -269,7 +353,7 @@ return function(mod)
     mod.ui.insertStepAfter(steps, "priston_reveal", {
       id = "priston_story",
       kind = "say",
-      pic = { type = "image", path = front },
+      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       text = "PRISTON lebte am\nKOENIGSHOF der\vSLOWAKEI.\f"
         .. "Samtkissen!\nLeckerli!\vEin Butler nur\vfuer ihn!\f"
         .. "Doch dann kam der\nschwarze Tag...",
@@ -277,7 +361,7 @@ return function(mod)
     mod.ui.insertStepAfter(steps, "priston_story", {
       id = "priston_banished",
       kind = "say",
-      pic = { type = "image", path = front },
+      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       text = "Der Hof hat ihn\nVERBANNT!\f"
         .. "Der Grund...\fEr STINKT.\f"
         .. "Kein Bad half.\nKein Parfuem.\vNichts half.",
@@ -285,7 +369,7 @@ return function(mod)
     mod.ui.insertStepAfter(steps, "priston_banished", {
       id = "priston_oath",
       kind = "yesno",
-      pic = { type = "image", path = front },
+      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       saveKey = "ehre_schwur",
       text = "PRISTON!\nWirst du deine\vEHRE zurueck-\verobern?",
     })

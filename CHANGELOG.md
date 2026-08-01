@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1
+
+- Overworld: weisser Kasten um den trueColor-Walker behoben -- der Sprite
+  wird jetzt nach dem SGB-Zonen-Pass in Echtfarbe replayt
+  (markSpriteRedraw statt Ganzzellen-Ausnahme; engine_internals).
+- TATRA: Vignette und Filmkorn beziehen sich jetzt auf das Spielfeld
+  statt auf das Fenster; die Letterbox bleibt schwarz.
+- Intro: die Story-Steps zeigen das Portraet ueber den player-Shorthand,
+  damit es in Echtfarbe rendert (type=image traegt kein trueColor).
+
 ## 0.3.0
 
 - Neu: TATRA -- eine echte Shader-Pipeline (render_pipelines, present-
