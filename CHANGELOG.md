@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Crashfix: SLOWAKEI-LOOK-Paletten in der Rohform ({{r,g,b}x4}) statt der
+  v2-colors-Form registrieren -- PaletteFX.sendColors indiziert numerisch
+  und stuerzte sonst beim ersten Frame ab.
+
 ## 0.2.0
 
 - Komplett ueberarbeitete Grafiken: GBA-Farben (Schaeferhund-Tan,

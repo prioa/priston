@@ -59,11 +59,14 @@ return function(mod)
       default = true },
   })
 
+  -- Ausgabe in der ROHFORM (vier {r,g,b}-Triple-Arrays): der Map-Paletten-
+  -- Pfad (PaletteFX.sendColors) indiziert numerisch und normalisiert die
+  -- v2-{colors=...}-Form nicht -- sie wuerde beim ersten Frame crashen
   local function gradeColor(r, g, b)
     return {
-      r = math.max(0, math.floor(r * 0.82)),
-      g = math.max(0, math.floor(g * 0.96)),
-      b = math.min(255, math.floor(b * 1.15 + 10)),
+      math.max(0, math.floor(r * 0.82)),
+      math.max(0, math.floor(g * 0.96)),
+      math.min(255, math.floor(b * 1.15 + 10)),
     }
   end
 
@@ -81,7 +84,7 @@ return function(mod)
       end
       out[i] = gradeColor(r, g, b)
     end
-    return { colors = out }
+    return out
   end
 
   -- erst sammeln, dann registrieren: nie das Registry mutieren, waehrend
