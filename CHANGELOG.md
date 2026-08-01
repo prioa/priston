@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Neu: TATRA -- eine echte Shader-Pipeline (render_pipelines, present-
+  Pass): kuehle Weissbalance, S-Kurven-Kontrast, Split-Toning, Vignette
+  und Filmkorn als OFF/1/2/3-Ladder. Hotkey 0, Zeile im Options-Menue,
+  Persistenz durch die Engine. Kollisionsfrei mit dem DramaticShape-
+  Voxel-Mod (Hotkeys 3/5/6/7/8/9).
+
 ## 0.2.1
 
 - Crashfix: SLOWAKEI-LOOK-Paletten in der Rohform ({{r,g,b}x4}) statt der

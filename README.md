@@ -21,6 +21,10 @@ POKEPORT_DEV=1 love .        # F10: Mod-Manager, priston aktivieren, NEW GAME
 - `field.playerPics`: Rueckenansicht im Kampf + Portrait (Intro, Trainer
   Card, Ruhmeshalle) -- Schaeferhund-Farben, Trikolore-Halsband, schiefe
   Goldkrone, gruene Stinkschwaden
+- Shader-Pipeline **TATRA** (Hotkey `0` oder Options-Zeile, Stufen
+  OFF/1/2/3): kuehle Weissbalance, S-Kurven-Kontrast, Split-Toning,
+  Vignette und Filmkorn ueber dem ganzen Bild -- komponiert mit dem
+  DramaticShape-Voxel-Mod, dessen Hotkeys (3/5-9) unberuehrt bleiben
 - Option **SLOWAKEI-LOOK** (standardmaessig an): kuehles Tatra-Color-
   Grading aller Map-Paletten ueber den `map.palette`-Hook; Vanilla-
   Paletten bleiben unangetastet

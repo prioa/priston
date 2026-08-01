@@ -109,6 +109,110 @@ return function(mod)
     return graded[out] or out
   end)
 
+  -- ------- TATRA: echte Shader-Pipeline (Ganzbild-Color-Grading)
+  -- present-Pass, nicht worldPresent: worldPresent feuert nur, wenn eine
+  -- Pipeline die Welt gezeichnet hat (Pipelines.lua:324); present laeuft
+  -- auch ueber der flachen 2D-Welt, in Menues und Kaempfen. Options-Zeile,
+  -- OFF/1/2/3-Ladder, Hotkey und Persistenz liefert die Engine aus dem
+  -- Record. Hotkey 0 kollidiert weder mit den Engine-Keys (2-5) noch mit
+  -- dem Voxel-Mod (3/5/6/7/8/9).
+
+  local TATRA = {
+    presets = {
+      [1] = { strength = 0.45, vig = 0.30, grain = 0.015 },
+      [2] = { strength = 0.70, vig = 0.45, grain = 0.030 },
+      [3] = { strength = 1.00, vig = 0.60, grain = 0.045 },
+    },
+    level = 0, time = 0,
+    shader = nil,   -- nil = unversucht, false = nicht verfuegbar
+    canvas = nil, cw = 0, ch = 0,
+  }
+
+  local TATRA_SHADER = [[
+    uniform float strength;
+    uniform float time;
+    uniform float vig;
+    uniform float grain;
+    vec4 effect(vec4 color, Image tex, vec2 tc, vec2 sc) {
+      vec4 px = Texel(tex, tc);
+      vec3 c = px.rgb;
+      // kuehle Weissbalance: Tatra-Morgenlicht
+      c *= mix(vec3(1.0), vec3(0.90, 0.97, 1.10), strength);
+      // sanfte S-Kurve fuer Kontrast
+      vec3 s = c * c * (3.0 - 2.0 * c);
+      c = mix(c, s, 0.55 * strength);
+      // Split-Toning: Schatten kippen ins Blau, Lichter minimal warm
+      float luma = dot(c, vec3(0.299, 0.587, 0.114));
+      c += (1.0 - luma) * strength * vec3(-0.030, 0.005, 0.060);
+      c += luma * strength * vec3(0.035, 0.012, -0.020);
+      // Vignette
+      vec2 d = tc - vec2(0.5);
+      c *= 1.0 - vig * strength * dot(d, d) * 1.2;
+      // Filmkorn
+      float n = fract(sin(dot(sc + vec2(time * 61.7, time * 12.9),
+                              vec2(12.9898, 78.233))) * 43758.5453);
+      c += (n - 0.5) * grain * strength;
+      return vec4(clamp(c, 0.0, 1.0), px.a) * color;
+    }
+  ]]
+
+  local function tatraShader()
+    if TATRA.shader == nil then
+      local ok, sh = pcall(function()
+        return love.graphics.newShader(TATRA_SHADER)
+      end)
+      TATRA.shader = (ok and sh) or false
+    end
+    return TATRA.shader or nil
+  end
+
+  mod.content.render_pipelines:register("tatra", {
+    label = "TATRA",
+    levels = { "OFF", "1", "2", "3" },
+    hotkey = "0",
+    priority = 10,
+    available = function()
+      return love ~= nil and love.graphics ~= nil
+        and love.graphics.newShader ~= nil
+    end,
+    update = function(dt, level)
+      TATRA.level = math.min(3, math.max(0, math.floor(tonumber(level) or 0)))
+      TATRA.time = (TATRA.time + (dt or 0)) % 64
+    end,
+    present = function(canvas)
+      local preset = TATRA.presets[TATRA.level]
+      if not (preset and canvas) then return canvas end
+      local sh = tatraShader()
+      if not sh then return canvas end
+      local w, h = canvas:getDimensions()
+      if not TATRA.canvas or TATRA.cw ~= w or TATRA.ch ~= h then
+        local okCanvas, fresh = pcall(love.graphics.newCanvas, w, h)
+        if not okCanvas then return canvas end
+        TATRA.canvas, TATRA.cw, TATRA.ch = fresh, w, h
+      end
+      local prevBlend, prevAlpha = love.graphics.getBlendMode()
+      love.graphics.setShader(sh)
+      love.graphics.setColor(1, 1, 1, 1)
+      -- replace, nicht alpha: das ist eine Bildverarbeitungs-Kopie
+      love.graphics.setBlendMode("replace", "premultiplied")
+      pcall(sh.send, sh, "strength", preset.strength)
+      pcall(sh.send, sh, "vig", preset.vig)
+      pcall(sh.send, sh, "grain", preset.grain)
+      pcall(sh.send, sh, "time", TATRA.time)
+      local ok = pcall(function()
+        love.graphics.setCanvas(TATRA.canvas)
+        love.graphics.draw(canvas)
+      end)
+      love.graphics.setCanvas()
+      love.graphics.setShader()
+      love.graphics.setBlendMode(prevBlend or "alpha", prevAlpha)
+      return ok and TATRA.canvas or canvas
+    end,
+    invalidate = function()
+      TATRA.canvas, TATRA.cw, TATRA.ch = nil, 0, 0
+    end,
+  })
+
   -- ------- ein standesgemaesses "WUFF" als Cry (ChipAsm steht auf der
   -- Whitelist, braucht kein engine_internals)
 

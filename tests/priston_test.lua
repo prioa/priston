@@ -74,6 +74,14 @@ T.check(#presets.player > 3, "vanilla player presets survive the prepend")
 T.check(Data.audio and Data.audio.cries and Data.audio.cries.PRISTON ~= nil,
   "PRISTON cry registered")
 
+-- ------- die TATRA-Pipeline ist registriert
+
+local tatra = Data.render_pipelines and Data.render_pipelines.tatra
+T.check(tatra ~= nil, "tatra pipeline registered")
+T.eq(tatra.label, "TATRA", "pipeline label")
+T.check(type(tatra.present) == "function", "pipeline has a present pass")
+T.check(type(tatra.available) == "function", "pipeline gates on availability")
+
 -- ------- das Intro erzaehlt die Verbannung
 
 local speech = OakSpeech.new({
