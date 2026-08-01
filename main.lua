@@ -280,18 +280,22 @@ return function(mod)
   mod.content.map_scripts:register("PALLET_TOWN", {
     talk = {
       TEXT_PALLETTOWN_SIGN = {
-        { "show_text", "MÖDLING\fHeimat des besten\nHUNDEFRISÖRS von\vganz KANTO." },
+        { "show_text", "MÖDLING\f(Die Einheimischen\nsagen KANTO.)\f"
+          .. "Heimat des besten\nHUNDEFRISÖRS weit\vund breit." },
       },
       TEXT_PALLETTOWN_FISHER = {
         { "check_flag", Q_DONE }, { "jump_if_true", "fertig" },
         { "check_flag", Q_START }, { "jump_if_true", "laufend" },
         { "face_player" },
-        { "show_text", "PRISTON! Ein Brief\nvom KÖNIGSHOF!\f"
-          .. "\"Man gewährt dir\ndas VOLLPROGRAMM\vbeim HUNDEFRISÖR\vzu MÖDLING.\"\f"
-          .. "\"Bestehst du es,\nist deine EHRE\vwiederhergestellt.\"" },
-        { "show_text", "Und ich mache das\nVOLLPROGRAMM!\f"
-          .. "Aber ich brauche:\nLAVENDELWASSER von\vRENE aus\vWR. NEUDORF...\f"
-          .. "...und KRÄUTER-\nSEIFE von NICI\vaus GAADEN!" },
+        { "show_text", "PRISTON! Da bist\ndu ja!\f"
+          .. "Ein Brief vom\nKÖNIGSHOF -- an\vmeinen SALON:\f"
+          .. "\"Wir hören, der\nVerbannte sammelt\vORDEN. Schön.\"\f"
+          .. "\"Aber ZUERST hat\ner einen TERMIN\vbeim FRISÖR.\"\f"
+          .. "\"Danach öffnet den\nUMSCHLAG, der\vbeiliegt.\"" },
+        { "show_text", "Ein Frisörbesuch\nalso! Waschen,\vBürsten, Krallen --\vdas Vollprogramm\vhalt.\f"
+          .. "Nur fehlt mir was\nfürs KÖNIGLICHE\vProtokoll:\f"
+          .. "LAVENDELWASSER von\nRENE, WR. NEUDORF.\f"
+          .. "KRÄUTERSEIFE von\nNICI, GAADEN." },
         { "set_flag", Q_START },
         { "jump", "end" },
 
@@ -300,48 +304,56 @@ return function(mod)
         { "check_item", SEIFE }, { "jump_if_false", "erinnern" },
         { "take_item", WASSER },
         { "take_item", SEIFE },
-        { "show_text", "Alles da!\fDann: SCHAUM!\nBÜRSTEN! FÖHN!\fDas VOLLPROGRAMM!" },
+        { "show_text", "Alles da! Dann ab\nauf den Tisch.\f"
+          .. "Waschen! Bürsten!\nKrallen! FÖHN!" },
         { "emote", "player", "happy", 45 },
         { "wait", 20 },
-        { "show_text", "PRISTON glänzt wie\nein KRONJUWEL!" },
+        { "show_text", "Fertig ist der\nFRISÖRBESUCH!\f"
+          .. "PRISTON glänzt wie\nein KRONJUWEL!" },
         { "show_text", "?!\fCESAR: WUFF!\nWUFF! WUFF!\f"
-          .. "CESAR: Glänzen\nkannst du gerne.\f"
-          .. "CESAR: Aber nach\nHAUSE kommst du\vmir NICHT!" },
+          .. "CESAR: Wehe ihr\nöffnet diesen\vUMSCHLAG!\f"
+          .. "CESAR: Wenn der\nSchwindler ECHT\vist...\f"
+          .. "CESAR: ...dann hab\nICH jahrelang\veinen KÖNIG\vangebellt!\f"
+          .. "CESAR: NIEMALS!" },
         { "start_battle", "trainer", "OPP_CESAR", 1 },
         { "jump_if_false", "verloren" },
         { "give_item", SIEGEL, 1, false },
         { "show_text", "CESAR zieht\nwinselnd ab!\f"
+          .. "Der UMSCHLAG...\fDas KÖNIGSSIEGEL.\nECHT!\f"
           .. "{PLAYER} erhält das\nKÖNIGSSIEGEL!" },
-        { "show_text", "Der Hof wartet,\nPRISTON.\fKehrst du zurück?" },
-        { "choice", { "ZUM HOF", "KANTO" } },
+        { "show_text", "Da steht noch was:\f\"Der Hof erwartet\ndich zurück.\"\f"
+          .. "Und? Kehrst du\nheim?" },
+        { "choice", { "ZUM HOF", "BLEIBEN" } },
         { "jump_if_false", "kanto" },
         { "set_field", "mod:entscheidung", "hof" },
         { "set_flag", Q_DONE },
         { "show_text", "Dann lauf, du\nsauberer Hund!\f"
-          .. "Möge der Hof dich\nendlich... riechen\vkönnen." },
+          .. "Und besuch uns --\nWENN die Samt-\vkissen langweilig\vwerden." },
         { "jump", "end" },
 
         { "label", "kanto" },
         { "set_field", "mod:entscheidung", "kanto" },
         { "set_flag", Q_DONE },
         { "show_text", "Ha! Wusste ich es.\f"
-          .. "Hier fragt eben\nniemand, wie du\vriechst.\f"
+          .. "LECKERLIS schlagen\nSAMTKISSEN.\f"
+          .. "Und irgendwer muss\nCESAR ja was zum\vBellen geben.\f"
           .. "Willkommen daheim,\nPRISTON." },
         { "jump", "end" },
 
         { "label", "verloren" },
-        { "show_text", "CESAR kichert wie\nein nasser Pudel.\f"
+        { "show_text", "CESAR bellt\ntriumphierend.\f"
           .. "Heil dein Team --\ndann NOCHMAL!" },
         { "jump", "end" },
 
         { "label", "erinnern" },
-        { "show_text", "Noch nicht alles\nda!\f"
+        { "show_text", "Der TERMIN steht!\nEs fehlt noch:\f"
           .. "LAVENDELWASSER:\nRENE, WR. NEUDORF.\f"
           .. "KRÄUTERSEIFE:\nNICI, GAADEN." },
         { "jump", "end" },
 
         { "label", "fertig" },
-        { "show_text", "Der sauberste Hund\nbeider Welten!\f...meistens." },
+        { "show_text", "Der bestfrisierte\nHund des Bezirks!\f"
+          .. "...riecht halt\nnoch. Bisserl." },
       },
     },
   })
@@ -349,25 +361,27 @@ return function(mod)
   mod.content.map_scripts:register("LAVENDER_TOWN", {
     talk = {
       TEXT_LAVENDERTOWN_SIGN = {
-        { "show_text", "WR. NEUDORF\f(Bei Hunger:\nfragt nach RENE.)" },
+        { "show_text", "WR. NEUDORF\f(Bei Hunger: RENE\nfragen. PRISTON\vtut es täglich.)" },
       },
       TEXT_LAVENDERTOWN_COOLTRAINER_M = {
         { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
         { "check_flag", Q_RENE }, { "jump_if_true", "danach" },
         { "face_player" },
         { "show_text", "RENE: PRISTON!\nAlter Stinker!\f"
-          .. "LAVENDELWASSER?\nKlar. Für dich\vdoch immer." },
+          .. "LAVENDELWASSER für\nden FRISÖRTERMIN?\f"
+          .. "Klar. Für dich\ndoch immer." },
         { "give_item", WASSER, 1, false },
         { "show_text", "{PLAYER} erhält\nLAVENDELWASSER!" },
-        { "show_text", "RENE: Und hier:\nLECKERLIS!\f"
-          .. "Für unterwegs.\nUnd für danach.\vUnd dazwischen." },
+        { "show_text", "RENE: Und hier --\nLECKERLIS!\f"
+          .. "Für unterwegs. Und\nfür danach. Und\vdazwischen." },
         { "heal_party" },
         { "show_text", "PRISTON hat ALLES\nsofort verdrückt!\f"
-          .. "(Er wirkt noch\nRUNDER als\vvorher...)" },
+          .. "(Vielleicht hilft\ndeshalb kein BAD\vder Welt...)\f"
+          .. "(Er schwitzt\nlängst LECKERLI.)" },
         { "set_flag", Q_RENE },
         { "jump", "end" },
         { "label", "danach" },
-        { "show_text", "RENE: Nachschlag?\nLeider alles\vaufgegessen.\fVon dir." },
+        { "show_text", "RENE: Nachschlag?\nAlles aufgegessen.\fVon dir." },
         { "jump", "end" },
         { "label", "vanilla" },
         { "show_text", "TEXT_LAVENDERTOWN_COOLTRAINER_M" },
@@ -378,18 +392,19 @@ return function(mod)
   mod.content.map_scripts:register("VIRIDIAN_CITY", {
     talk = {
       TEXT_VIRIDIANCITY_SIGN = {
-        { "show_text", "GAADEN\f(Bitte leise --\nFLORIAN spielt.)" },
+        { "show_text", "GAADEN\f(Bitte leise --\nFLORIAN spielt\vRANGLISTE.)" },
       },
       TEXT_VIRIDIANCITY_GIRL = {
         { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
         { "check_flag", Q_NICI }, { "jump_if_true", "danach" },
         { "face_player" },
-        { "show_text", "NICI: Ah! Der Hund\nvom KÖNIGSHOF!\f"
+        { "show_text", "NICI: Ah. Der\n\"KÖNIGSHUND\".\vSoso.\f"
+          .. "Na, Hauptsache\nsauber.\f"
           .. "Die KRÄUTERSEIFE\nist frisch\vgekocht. Hier!" },
         { "give_item", SEIFE, 1, false },
         { "show_text", "{PLAYER} erhält die\nKRÄUTERSEIFE!" },
-        { "show_text", "NICI: FLORIAN?\nDer hockt oben im\vKINDERZIMMER.\f"
-          .. "Seit 26 Jahren.\fSag ihm, das Essen\nist fertig. Mich\vhört er nie." },
+        { "show_text", "NICI: FLORIAN?\nOben im KINDER-\vZIMMER. Seit 26\vJahren.\f"
+          .. "Sag ihm, das Essen\nist fertig. Mich\vhört er nie." },
         { "set_flag", Q_NICI },
         { "jump", "end" },
         { "label", "danach" },
@@ -687,13 +702,15 @@ return function(mod)
       return steps
     end
 
-    byId.oak_welcome.text = "Hallo!\nMein Name ist\vEICH.\f"
-      .. "Man nennt mich den\nPOKéMON-PROF!\f"
-      .. "Doch heute geht es\nnicht um POKéMON."
+    byId.oak_welcome.text = "Willkommen in der\nWelt der POKéMON!\f"
+      .. "Ich bin PROF.\nEICH.\f"
+      .. "Jedes Jahr schicke\nich neue Trainer\vauf die Reise.\f"
+      .. "Doch dieses Jahr\nist einer dabei,\vder... anders ist."
 
-    byId.world_spiel.text = "Dies ist KANTO.\f"
-      .. "Hier fragt niemand\nwoher du kommst.\f"
-      .. "Und niemand...\nwie du riechst."
+    byId.world_spiel.text = "Dies ist der\nBEZIRK MÖDLING.\f"
+      .. "Die Einheimischen\nnennen ihn KANTO.\vFrag nicht.\f"
+      .. "Hier zieht jeder\nTrainer mit\vPOKéMON los.\f"
+      .. "Dieses Jahr auch:\nein HUND."
 
     mod.ui.insertStepAfter(steps, "world_spiel", {
       id = "priston_reveal",
@@ -702,31 +719,32 @@ return function(mod)
       reveal = "fade",
       cry = "PRISTON",
       text = "Dies ist PRISTON.\f"
-        .. "Ein SCHÄFERHUND\naus der SLOWAKEI.\f"
+        .. "Ein SCHÄFERHUND --\nund zwar aus dem\vKÖNIGSHAUS der\vSLOWAKEI.\f"
         .. "Ein stattlicher\nHund. Sehr...\vstattlich.",
     })
     mod.ui.insertStepAfter(steps, "priston_reveal", {
       id = "priston_story",
       kind = "say",
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
-      text = "PRISTON lebte am\nKÖNIGSHOF der\vSLOWAKEI.\f"
-        .. "Samtkissen!\nLeckerli!\vEin Butler nur\vfür ihn!\f"
+      text = "Er hatte alles:\nSamtkissen!\vEinen BUTLER!\vLECKERLI auf\vSilber!\f"
         .. "Doch dann kam der\nschwarze Tag...",
     })
     mod.ui.insertStepAfter(steps, "priston_story", {
       id = "priston_banished",
       kind = "say",
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
-      text = "Der Hof hat ihn\nVERBANNT!\f"
-        .. "Der Grund...\fEr STINKT.\f"
-        .. "Kein Bad half.\nKein Parfüm.\vNichts half.",
+      text = "VERBANNT!\nWegen GESTANKS.\f"
+        .. "Kein Bad half.\nKein Parfüm.\vNichts half.\f"
+        .. "So wanderte er\nüber die Berge --\f"
+        .. "und fand hier im\nBEZIRK ein neues\vDAHEIM.",
     })
     mod.ui.insertStepAfter(steps, "priston_banished", {
       id = "priston_oath",
       kind = "yesno",
       pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
       saveKey = "ehre_schwur",
-      text = "PRISTON!\nWirst du deine\vEHRE zurück-\verobern?",
+      text = "Nur: kaum jemand\nGLAUBT ihm das.\f"
+        .. "PRISTON! Wirst du\nihnen ALLEN\vbeweisen, wer du\vwirklich bist?",
     })
 
     byId.ask_player_name.text = "Doch zuerst...\f"
@@ -734,15 +752,18 @@ return function(mod)
     byId.name_player.title = "DEIN NAME?"
     byId.name_player.presets = { "PRISTON", "SMRAD", "BOBIK" }
 
-    byId.ask_rival_name.text = "Das ist CESAR.\nDer große weiße\vHÜTEHUND aus dem\vNachbarhaus.\f"
-      .. "Er hat dich JEDEN\nTAG angebellt.\f"
-      .. "Und SEINETWEGEN\nhat der Hof dir\vnie geglaubt!"
+    byId.ask_rival_name.text = "EINER glaubt ihm\nkein Wort:\f"
+      .. "CESAR. Der große\nweiße HÜTEHUND\vvon nebenan.\f"
+      .. "\"Königshaus? Dass\nich nicht BELLE!\"\f"
+      .. "Und jetzt zieht er\nSELBST als Trainer\vlos --\f"
+      .. "nur um dabei zu-\nzusehen, wie du\vSCHEITERST!"
     byId.name_rival.title = "SEIN NAME?"
     byId.name_rival.presets = { "CESAR", "REX", "LORD" }
 
     byId.legend.text = "{PLAYER}!\nDeine Reise\vbeginnt jetzt!\f"
-      .. "Hol dir die EHRE\ndes Königshauses\vzurueck!\f"
-      .. "Und vielleicht...\nein Bad."
+      .. "Sammle ORDEN.\nFang POKéMON.\vBeweise dich.\f"
+      .. "Ach ja -- und geh\nirgendwann zum\vFRISÖR.\f"
+      .. "Du weißt schon,\nwarum."
 
     return steps
   end)

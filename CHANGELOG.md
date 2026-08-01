@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.0
+
+- Komplette Story-Ueberarbeitung aus einem Guss (Kanon in STORY.md):
+  Eich stellt weiter die Pokemon-Welt vor -- sein neuer Trainer ist
+  dieses Jahr ein Hund. Der Bezirk Moedling heisst bei den
+  Einheimischen "Kanto". CESAR ist jetzt DER Rivale des
+  Originalspiels: er zieht selbst als Trainer los, um Priston
+  scheitern zu sehen (erklaert alle Vanilla-Rivalenkaempfe), und
+  sein Finale-Motiv ist die Blamage, jahrelang einen echten KOENIG
+  angebellt zu haben.
+- Der Frisoerbesuch ist das Zentrum der Quest (das Vollprogramm nur
+  eine Randnotiz); der versiegelte Umschlag mit dem KOENIGSSIEGEL
+  liegt dem Brief des Hofes bei.
+- Der Gestank hat jetzt eine Kanon-Ursache: ganz Kanto maestet
+  Priston -- er schwitzt laengst Leckerli (RENE spricht es aus).
+- Schlusswahl umbenannt: ZUM HOF / BLEIBEN.
+
 ## 0.7.1
 
 - mod.card: Rivalen-Eintrag auf CESAR aktualisiert, Quest-Maps gelistet.
