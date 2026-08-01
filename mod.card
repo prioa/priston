@@ -1,0 +1,27 @@
+return {
+  summary = "Spiele als PRISTON: dicker Schaeferhund, vom Hof der Slowakei verbannt.",
+  author = "patrickfock7",
+  tags = { "cosmetic", "story", "beginner", "deutsch" },
+  differences = {
+    changed = {
+      "Overworld-Laufsprite des Spielers (SPRITE_PRISTON, eigenes Sheet)",
+      "Battle-Backpic und Trainer-Portrait (field.playerPics)",
+      "Prof. Eichs Intro: deutsche Verbannungs-Story mit 4 neuen Steps",
+      "Namensvorschlaege: PRISTON/SMRAD/BOBIK und GASTON/FIFI/LORD zuerst",
+    },
+    added = {
+      "Cry 'PRISTON' (eigenes ChipAsm-Wuff)",
+      "mod.save: ehre_schwur (Antwort im Intro), intro_gesehen",
+    },
+    known = {
+      "Surf-, Rad- und Flug-Sprites bleiben Vanilla (Priston auf dem Rad folgt)",
+      "Die Shrink-Animation am Intro-Ende nutzt die Vanilla-Frames",
+      "Deutsche Texte ohne Umlaute (Gen-1-Zeichensatz); Umlaut-Fontpage geplant",
+      "Nur Spieltexte des Mods sind deutsch, das restliche Spiel bleibt englisch",
+    },
+  },
+  credits = {
+    { who = "patrickfock7", for_ = "Idee und Figur PRISTON" },
+  },
+  compat = { engine = ">=0.0.0-dev <1.0.0", modApi = 2 },
+}
