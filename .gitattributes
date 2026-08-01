@@ -1,0 +1,7 @@
+tests/ export-ignore
+tools/ export-ignore
+.modkitignore export-ignore
+.github/ export-ignore
+.gitignore export-ignore
+.luarc.json export-ignore
+.gitattributes export-ignore
