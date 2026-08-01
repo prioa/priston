@@ -40,6 +40,56 @@ return function(mod)
     return out
   end)
 
+  -- ------- animierte Stinkwolken
+  -- 4-Frame-Sheet (assets/priston_stink.png); Overworld zeichnet sie ueber
+  -- den Post-Zonen-Replay (echte Farben), der Kampf ueber battle.overlay.
+
+  local STINK = { image = nil, quads = nil }
+
+  local function stinkFrame()
+    local t = 0
+    pcall(function() t = love.timer.getTime() end)
+    return math.floor(t * 5) % 4
+  end
+
+  local function stinkImage()
+    if STINK.image == nil then
+      local ok, img = pcall(function()
+        return require("src.render.Assets").image(
+          mod.path .. "/assets/priston_stink.png")
+      end)
+      if ok and img and love.graphics and love.graphics.newQuad then
+        STINK.image = img
+        STINK.quads = {}
+        for f = 0, 3 do
+          STINK.quads[f] = love.graphics.newQuad(0, f * 16, 16, 16,
+                                                 img:getDimensions())
+        end
+      else
+        STINK.image = false
+      end
+    end
+    if STINK.image then return STINK.image, STINK.quads end
+    return nil, nil
+  end
+
+  mod.hooks:wrap("battle.overlay", function(next, battle)
+    local out = next(battle)
+    if battle and battle.showPlayerBack then
+      local img, quads = stinkImage()
+      if img then
+        pcall(function()
+          local f = stinkFrame()
+          love.graphics.setColor(1, 1, 1, 0.85)
+          love.graphics.draw(img, quads[f], 14, 34, 0, 2, 2)
+          love.graphics.draw(img, quads[(f + 2) % 4], 36, 42, 0, 2, 2)
+          love.graphics.setColor(1, 1, 1, 1)
+        end)
+      end
+    end
+    return out
+  end)
+
   -- Overworld-Fix fuer trueColor-Walker (engine_internals): markTrueColor
   -- nimmt das ganze 16x16-Feld vom SGB-Zonen-Shader aus, wodurch unter den
   -- transparenten Pixeln die UNgefaerbte Welt (DMG-Weiss) durchscheint --
@@ -88,6 +138,14 @@ return function(mod)
           PaletteFX.markSpriteRedraw(self.image, quad, x + 16, y, -1)
         else
           PaletteFX.markSpriteRedraw(self.image, quad, x, y, 1)
+        end
+        -- die koeniglichen Schwaden steigen ueber dem Hund auf, im selben
+        -- Post-Zonen-Replay, damit das Gruen die Zonenfaerbung ueberlebt
+        if def.id == "SPRITE_PRISTON" then
+          local img, quads = stinkImage()
+          if img then
+            PaletteFX.markSpriteRedraw(img, quads[stinkFrame()], x, y - 12, 1)
+          end
         end
       end
     end)

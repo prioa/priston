@@ -33,6 +33,7 @@ PAL = {
     "k": (34, 26, 22, 255),
     "p": (198, 124, 118, 255),
     "r": (206, 52, 58, 255),
+    "l": (112, 70, 34, 255),
     "w": (238, 238, 238, 255),
     "u": (28, 80, 158, 255),
     "g": (233, 186, 62, 255),
@@ -59,7 +60,7 @@ DOWN_STAND = [
     "..kttkttttkttk..",
     "..ktssskksssk...",
     "..ksttckcttsk...",
-    "..kruwuruwurk...",
+    "..klllglllllk...",
     ".kssssttttssssk.",
     ".kstttcccctttsk.",
     ".ksttccccccttsk.",
@@ -83,7 +84,7 @@ UP_STAND = [
     "..kssssssssssk..",
     "..kssssssssssk..",
     "..kssssssssssk..",
-    "..kruwuruwurk...",
+    "..klllglllllk...",
     ".kssssssssssssk.",
     ".kssssssssssssk.",
     ".kttssssssssttk.",
@@ -110,7 +111,7 @@ LEFT_STAND = [
     ".ktkttk.........",
     "kksttttk........",
     ".kttttskk....kk.",
-    "..kruwkssssskssk",
+    "..klglkssssskssk",
     ".kstttttssssssk.",
     ".ktttttttsssssk.",
     ".kctttttttttsk..",
@@ -186,10 +187,11 @@ def make_back():
     d.ellipse([6, 14, 25, 26], fill=S)
     # head from behind
     d.ellipse([9, 5, 22, 18], fill=S, outline=K)
-    # collar between head and shoulders
-    d.line([(10, 16), (21, 16)], fill=R)
-    d.line([(10, 17), (21, 17)], fill=W)
-    d.line([(11, 18), (20, 18)], fill=U)
+    # leather collar between head and shoulders, one gold tag
+    d.line([(10, 16), (21, 16)], fill=PAL["l"])
+    d.line([(10, 17), (21, 17)], fill=PAL["l"])
+    d.line([(11, 18), (20, 18)], fill=PAL["l"])
+    d.point([(15, 17), (16, 17)], fill=G)
     # ears
     d.polygon([(10, 8), (8, 1), (15, 5)], fill=S, outline=K)
     d.polygon([(21, 8), (23, 1), (16, 5)], fill=S, outline=K)
@@ -205,7 +207,6 @@ def make_back():
     d.rectangle([7, 29, 11, 31], fill=T, outline=K)
     d.rectangle([20, 29, 24, 31], fill=T, outline=K)
 
-    stink_wisps(d, [(2, 14), (29, 13)])
     img.save(os.path.join(OUT, "priston_back.png"))
 
 
@@ -251,10 +252,11 @@ def make_front():
     d.line([(27, 27), (27, 30)], fill=K)
     d.line([(24, 31), (31, 31)], fill=K)  # mouth
 
-    # collar between head and chest
-    d.line([(19, 34), (36, 34)], fill=R)
-    d.line([(18, 35), (37, 35)], fill=W)
-    d.line([(19, 36), (36, 36)], fill=U)
+    # leather collar between head and chest, one gold tag
+    d.line([(19, 34), (36, 34)], fill=PAL["l"])
+    d.line([(18, 35), (37, 35)], fill=PAL["l"])
+    d.line([(19, 36), (36, 36)], fill=PAL["l"])
+    d.point([(27, 35), (28, 35)], fill=G)
 
     # the small crooked gold crown, one spike bent
     d.polygon([(22, 11), (22, 6), (24, 1), (26, 6), (28, 0), (30, 6),
@@ -271,9 +273,30 @@ def make_front():
     img.save(os.path.join(OUT, "priston_front.png"))
 
 
+def make_stink():
+    """16x64: vier 16x16-Frames aufsteigender gruener Stinkschwaden.
+    Zwei Wellenlinien mit Phasenversatz pro Frame; Alpha nimmt nach oben
+    ab, damit die Schwaden verwehen."""
+    import math
+    E1 = (140, 178, 96)
+    E2 = (176, 205, 130)
+    sheet = Image.new("RGBA", (16, 64), (0, 0, 0, 0))
+    px = sheet.load()
+    for f in range(4):
+        oy = f * 16
+        for cx, col, speed in ((4, E1, 1.0), (11, E2, 1.3)):
+            for y in range(2, 14):
+                x = cx + round(1.6 * math.sin(y / 2.6 + f * math.pi / 2 * speed))
+                if 0 <= x < 16:
+                    alpha = max(70, 255 - (13 - y) * 16)
+                    px[x, oy + y] = (col[0], col[1], col[2], alpha)
+    sheet.save(os.path.join(OUT, "priston_stink.png"))
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     make_walker()
     make_back()
     make_front()
+    make_stink()
     print("wrote priston_walk.png, priston_back.png, priston_front.png")

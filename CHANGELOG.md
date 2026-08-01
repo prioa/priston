@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- Animierte Stinkwolken: 4-Frame-Sheet, im Overworld ueber den
+  Post-Zonen-Replay (Gruen ueberlebt die Zonenfaerbung), im Kampf ueber
+  battle.overlay -- laeuft auch im 3D-Voxel-Battle.
+- Halsband jetzt Leder-Braun mit goldener Marke (statt Trikolore),
+  in allen drei Ansichten.
+- Gebackene Wisps aus dem Battle-Backpic entfernt (ersetzt durch die
+  animierten).
+
 ## 0.3.1
 
 - Overworld: weisser Kasten um den trueColor-Walker behoben -- der Sprite
