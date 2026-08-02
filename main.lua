@@ -652,6 +652,14 @@ return function(mod)
     local ow = world and world.overworld and world:overworld()
     local player = ow and ow.player
     if not player or not player.cellX then return end
+    -- gecachte Map-Instanzen bringen den alten Laufzeit-Priston wieder
+    -- mit (Haus rein/raus) -- erst alle Altbestaende entfernen, sonst
+    -- verdoppelt sich der Hund
+    for _, npc in ipairs(ow.npcs or {}) do
+      if npc.def and npc.def.name == FOLLOWER and npc.id then
+        pcall(function() world:removeNpc(npc.id) end)
+      end
+    end
     local bx, by = behindCell(player.cellX, player.cellY,
                               player.facing or "down")
     local ok = world:spawnNpc(ev.mapId, {

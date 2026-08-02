@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.2
+
+- Follower-Fix: beim Rueckkehren auf eine gecachte Map (Haus rein/raus,
+  Warp) blieb der alte Laufzeit-Priston stehen und verdoppelte sich --
+  Altbestaende werden jetzt vor dem Respawn entfernt.
+- Kompatibilitaet verifiziert: Follower + Wisps unter SGB, RED++ und
+  OG RED; im Voxel-Overworld rendert der Follower als Billboard in
+  korrekten Farben (Wisps zeichnet der 3D-Weltpass nicht -- bekannt).
+
 ## 0.9.1
 
 - Portraet-Rework v3: Token-Master-Architektur -- Farb- und GB-Fassung
