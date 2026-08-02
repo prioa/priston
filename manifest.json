@@ -1,7 +1,7 @@
 {
   "id": "priston",
   "name": "Priston",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "api": 2,
   "entry": "main.lua",
   "profile": "content",
@@ -14,7 +14,7 @@
   "incompatible": [],
   "experimental": false,
   "github": "prioa/priston",
-  "description": "Spiele als PRISTON, den uebergewichtigen Schaeferhund, der wegen seines Gestanks aus dem Koenigshaus der Slowakei verbannt wurde.",
+  "description": "PRISTON, dein verbannter Koenigshund, als Follower -- samt Frisoer-Quest, Euro-Wirtschaft, Hofstaat und KOMPLETT deutscher Lokalisierung.",
   "permissions": [
     "engine_internals"
   ]

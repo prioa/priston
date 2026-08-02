@@ -129,13 +129,23 @@ Runtime.emit("battle.ended", { battle = { kind = "trainer", demo = true },
 T.eq((run.loader.modSave.priston or {}).euros, 6,
   "trainer +5, wild +1, demo zaehlt nicht")
 
+-- ------- die integrierte Lokalisierung
+
+T.eq(Data.pokemon.BULBASAUR.name, "BISASAM", "Spezies deutsch")
+T.eq(Data.items.POTION.name, "TRANK", "Items deutsch")
+T.check(Data.text._PalletTownSignText ~= nil
+        and not tostring(Data.text._PalletTownSignText):find("PALLET TOWN"),
+  "Dialogtexte ueberschrieben")
+T.check(Data.statuses.PSN and Data.statuses.PSN.label == "GIF",
+  "Status-Kuerzel deutsch")
+
 -- ------- der Hofstaat
 
 T.eq(Data.trainers.OPP_YOUNGSTER.name, "LAUSBUB", "Youngster ist Lausbub")
 T.eq(Data.trainers.OPP_TAMER.name, "ZWINGERWART", "Tamer ist Zwingerwart")
 T.eq(Data.trainers.OPP_ROCKET.name, "INTRIGANT", "Rocket ist Intrigant")
-T.eq(Data.trainers.OPP_BROCK.name, "BROCK",
-  "benannte Figuren bleiben unangetastet")
+T.eq(Data.trainers.OPP_BROCK.name, "ROCKO",
+  "benannte Figuren tragen ihre offiziellen deutschen Namen")
 
 -- ------- die Quest ist verdrahtet
 

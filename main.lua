@@ -39,6 +39,73 @@ return function(mod)
     },
   })
 
+  -- ------- Deutsche Lokalisierung
+  -- Die kompletten Uebersetzungs-Kataloge (Dialoge, Engine-Texte, Namen,
+  -- Status-Kuerzel, Namensraster) leben unter lang/ und werden hier
+  -- angewendet -- gleiche Mechanik wie das translation-Scaffold der
+  -- Engine. Leere Eintraege bleiben englisch. Die Umlaute kommen von der
+  -- priston_umlauts-Fontseite weiter oben.
+
+  local function katalog(name)
+    local body = mod:read("lang/" .. name .. ".lua")
+    if not body then return {} end
+    local chunk, err = load(body, "@lang/" .. name .. ".lua")
+    if not chunk then
+      mod.log:warn("lang/%s.lua Syntaxfehler: %s", name, tostring(err))
+      return {}
+    end
+    local ok, tbl = pcall(chunk)
+    if not ok or type(tbl) ~= "table" then
+      mod.log:warn("lang/%s.lua liefert keine Tabelle", name)
+      return {}
+    end
+    return tbl
+  end
+
+  local function anwenden(name, apply)
+    local n = 0
+    for key, value in pairs(katalog(name)) do
+      if type(value) == "string" and value ~= "" then
+        apply(key, value)
+        n = n + 1
+      end
+    end
+    return n
+  end
+
+  local uebersetzt = 0
+  uebersetzt = uebersetzt + anwenden("dialogue", function(id, value)
+    mod.content.text:override(id, value)
+  end)
+  uebersetzt = uebersetzt + anwenden("strings", function(source, value)
+    mod.content.strings:override(source, value)
+  end)
+  uebersetzt = uebersetzt + anwenden("species_names", function(id, value)
+    mod.content.pokemon:patch(id, { name = value })
+  end)
+  uebersetzt = uebersetzt + anwenden("move_names", function(id, value)
+    mod.content.moves:patch(id, { name = value })
+  end)
+  uebersetzt = uebersetzt + anwenden("item_names", function(id, value)
+    mod.content.items:patch(id, { name = value })
+  end)
+  uebersetzt = uebersetzt + anwenden("trainer_names", function(id, value)
+    mod.content.trainers:patch(id, { name = value })
+  end)
+  uebersetzt = uebersetzt + anwenden("status_labels", function(id, value)
+    mod.content.statuses:patch(id, { label = value })
+  end)
+  mod.log:info("Deutsche Lokalisierung: %d Texte aktiv", uebersetzt)
+
+  local raster = katalog("naming")
+  if raster.upper then
+    mod.hooks:wrap("ui.naming.grid", function(next, base, ctx)
+      local out = next(base, ctx)
+      local want = (ctx and ctx.lower) and raster.lower or raster.upper
+      return want or out
+    end)
+  end
+
   -- ------- die Hymne: "Nad Tatrou sa blyska" fuer Pallet Town
   -- Volksweise (gemeinfrei), eigenes Arrangement in hymna.lua; mod:read +
   -- load haelt sie durch das Loader-Dateisystem addressierbar (Jukebox-

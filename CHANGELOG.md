@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.14.0
+
+- Die komplette deutsche Lokalisierung ist jetzt IN dieser Mod
+  integriert (lang/-Kataloge: alle 2582 Dialoge, 599 Engine-Texte,
+  saemtliche Namen, Status-Kuerzel, Namensraster mit Umlauten). Die
+  separate "Deutsch"-Mod wird nicht mehr benoetigt -- bitte im
+  Mod-Manager deinstallieren, falls installiert.
+- Der Hofstaat ueberschreibt weiterhin die Trainerklassen; benannte
+  Figuren tragen ihre offiziellen deutschen Namen (ROCKO, AGATHE,
+  SIEGFRIED, PYRO, MAJOR BOB ...).
+
 ## 0.13.0
 
 - Der Hofstaat: 31 generische Trainerklassen tragen jetzt Hofaemter
