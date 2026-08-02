@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.3
+
+- Hymne sauber neu gesetzt: deklarative Notentabellen in echtem 3/4
+  (17 Takte, Couplet-Wiederholung, Fermate), beide Stimmen aus
+  denselben Tabellen gebaut. Die Laengengleichheit der Stimmen wird
+  beim Laden ERZWUNGEN und im Test geprueft -- der Loop-Drift, der als
+  "Musik buggt" hoerbar war (130 vs 104 Einheiten), ist damit
+  konstruktiv ausgeschlossen. Neue Option HYMNE (an/aus).
+- CESARs Team wird gegen die Basis geprueft und degradiert mit
+  Warnung statt die Mod auf exotischen Basen zu reissen.
+- Per-Frame-Closures in TATRA/HUD gehoisted (GC-Ruhe).
+
 ## 0.12.2
 
 - Stop-and-Go beim Laufen behoben: Der Follower lief bisher ueber die

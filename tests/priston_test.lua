@@ -62,6 +62,15 @@ T.check(Data.audio and Data.audio.cries and Data.audio.cries.PRISTON ~= nil,
 
 T.check(Data.audio and Data.audio.songs
         and Data.audio.songs.Music_PristonHymna ~= nil, "anthem registered")
+local hymna = dofile("mods/priston/hymna.lua")
+T.eq(hymna.meta.melodie, hymna.meta.bass,
+  "anthem voices equal length (no loop drift)")
+T.check(hymna.meta.melodie % 12 == 0, "anthem is whole 3/4 bars")
+local cesar = Data.trainers.OPP_CESAR
+for _, slot in ipairs(cesar.parties[1]) do
+  T.check(Data.pokemon[slot.species] ~= nil,
+    "CESAR party resolves: " .. tostring(slot.species))
+end
 T.check(Data.font and Data.font.pages
         and Data.font.pages.priston_umlauts ~= nil, "umlaut font page registered")
 
@@ -127,7 +136,7 @@ T.check(Data.items.PRISTON_KRAEUTERSEIFE ~= nil, "Kraeuterseife registered")
 T.check(Data.items.PRISTON_KOENIGSSIEGEL ~= nil, "Koenigssiegel registered")
 T.check(Data.trainers.OPP_CESAR ~= nil, "CESAR trainer registered")
 T.eq(Data.trainers.OPP_CESAR.parties[1][2].species, "ARCANINE",
-  "CESAR runs Growlithe + Arcanine")
+  "CESAR runs Growlithe + Arcanine on the imported base")
 local MapScripts = require("src.script.MapScripts")
 for _, probe in ipairs({
   { "PALLET_TOWN", "TEXT_PALLETTOWN_FISHER" },

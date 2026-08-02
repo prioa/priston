@@ -1,62 +1,91 @@
 -- "Nad Tatrou sa blyska" -- die slowakische Hymne (Volksweise "Kopala
--- studienku", gemeinfrei) als eigenes ChipAsm-Arrangement fuer PRISTONs
--- Heimweh. Zwei Pulskanaele: Melodie + einfacher Begleitbass, 3/4-Gefuehl.
+-- studienku", gemeinfrei) als eigenes ChipAsm-Arrangement.
+--
+-- Deklarativ: beide Stimmen stehen als Notentabellen in sauberem
+-- 3/4-Takt (12 Einheiten pro Takt, 2 = Achtel, 4 = Viertel,
+-- 6 = punktierte Viertel, 12 = punktierte Halbe). Die Programme werden
+-- aus den Tabellen GEBAUT, und die Gesamtlaengen beider Stimmen werden
+-- mitgeliefert -- main.lua verweigert die Registrierung, wenn sie nicht
+-- exakt gleich sind. Loop-Drift (der alte "Musik buggt"-Fehler) ist
+-- damit konstruktiv ausgeschlossen.
 local ChipAsm = require("src.audio.ChipAsm")
 
-return ChipAsm.song{
-  tempo = 0x150,
-  channels = {
-    { hw = 1, program = {
-      { duty = 2 },
-      { notetype = { speed = 12, volume = 10, fade = 2 } },
-      { label = "melodie" },
-      -- Nad Tatrou sa blyska
-      { octave = 5 },
-      { note = "E", len = 4 }, { note = "E", len = 4 },
-      { note = "D", len = 2 }, { note = "C", len = 2 },
-      { octave = 4 }, { note = "B", len = 6 }, { rest = 2 },
-      -- hromy divo biju
-      { octave = 5 },
-      { note = "C", len = 4 }, { note = "D", len = 4 },
-      { octave = 4 },
-      { note = "B", len = 2 }, { note = "A", len = 2 },
-      { note = "G", len = 6 }, { rest = 2 },
-      -- Zastavme ich, bratia
-      { note = "G", len = 2 }, { note = "A", len = 2 },
-      { note = "B", len = 4 },
-      { octave = 5 }, { note = "C", len = 2 },
-      { octave = 4 }, { note = "B", len = 2 },
-      { note = "A", len = 6 }, { rest = 2 },
-      -- ved sa ony stratia
-      { note = "B", len = 2 },
-      { octave = 5 }, { note = "C", len = 2 },
-      { octave = 4 },
-      { note = "A", len = 2 }, { note = "G", len = 2 },
-      { note = "F#", len = 4 }, { note = "E", len = 6 }, { rest = 2 },
-      -- Slovaci oziju
-      { note = "E", len = 2 }, { note = "G", len = 2 },
-      { note = "B", len = 4 },
-      { octave = 5 }, { note = "E", len = 4 },
-      { note = "D", len = 2 }, { note = "C", len = 2 },
-      { octave = 4 }, { note = "B", len = 8 },
-      { note = "A", len = 2 }, { note = "G", len = 2 },
-      { note = "F#", len = 4 }, { note = "E", len = 10 },
-      { rest = 8 },
-      { loop = { count = 0, to = "melodie" } },
-    } },
-    { hw = 2, program = {
-      { duty = 1 },
-      { notetype = { speed = 12, volume = 6, fade = 1 } },
-      { octave = 3 },
-      { label = "bass" },
-      { note = "E", len = 8 }, { note = "G", len = 8 },
-      { note = "A", len = 8 }, { note = "E", len = 8 },
-      { note = "C", len = 8 }, { note = "D", len = 8 },
-      { note = "B", len = 8 }, { note = "E", len = 8 },
-      { note = "E", len = 8 }, { note = "A", len = 8 },
-      { note = "B", len = 8 }, { note = "E", len = 12 },
-      { rest = 4 },
-      { loop = { count = 0, to = "bass" } },
-    } },
+-- { Oktave, Ton, Laenge }; Ton "-" = Pause
+local MELODIE = {
+  -- Nad Tatrou sa blyska
+  { 5, "E", 6 }, { 5, "E", 2 }, { 5, "D", 4 },
+  { 5, "C", 6 }, { 5, "C", 2 }, { 4, "B", 4 },
+  -- hromy divo biju
+  { 5, "C", 6 }, { 5, "D", 2 }, { 4, "B", 4 },
+  { 4, "A", 6 }, { 4, "A", 2 }, { 4, "G", 4 },
+  -- (Wiederholung des Couplets, wie gesungen)
+  { 5, "E", 6 }, { 5, "E", 2 }, { 5, "D", 4 },
+  { 5, "C", 6 }, { 5, "C", 2 }, { 4, "B", 4 },
+  { 5, "C", 6 }, { 5, "D", 2 }, { 4, "B", 4 },
+  { 4, "A", 6 }, { 4, "A", 2 }, { 4, "G", 4 },
+  -- Zastavme ich, bratia
+  { 4, "G", 6 }, { 4, "A", 2 }, { 4, "B", 4 },
+  { 5, "C", 6 }, { 5, "C", 2 }, { 4, "B", 4 },
+  -- ved sa ony stratia
+  { 4, "B", 6 }, { 5, "C", 2 }, { 4, "A", 4 },
+  { 4, "G", 6 }, { 4, "G", 2 }, { 4, "F#", 4 },
+  -- Slovaci oziju
+  { 4, "E", 6 }, { 4, "G", 2 }, { 4, "B", 4 },
+  { 5, "E", 6 }, { 5, "D", 2 }, { 5, "C", 4 },
+  { 4, "B", 12 },
+  -- ...oziju (Schluss)
+  { 4, "A", 6 }, { 4, "G", 2 }, { 4, "F#", 4 },
+  { 4, "E", 12 },
+}
+
+-- ein Grundton pro Takt, punktierte Halbe -- 16 Takte wie die Melodie
+local BASS = {
+  { 3, "E", 12 }, { 3, "G", 12 }, { 3, "A", 12 }, { 3, "E", 12 },
+  { 3, "E", 12 }, { 3, "G", 12 }, { 3, "A", 12 }, { 3, "E", 12 },
+  { 3, "G", 12 }, { 3, "A", 12 }, { 3, "B", 12 }, { 3, "E", 12 },
+  -- Finale hat FUENF Takte (B-Fermate + Schlusstakt)
+  { 3, "E", 12 }, { 3, "C", 12 }, { 3, "B", 12 }, { 3, "B", 12 },
+  { 3, "E", 12 },
+}
+
+local function laenge(stimme)
+  local total = 0
+  for _, n in ipairs(stimme) do total = total + n[3] end
+  return total
+end
+
+local function programm(stimme, notetype, label)
+  local prog = { { duty = notetype.duty },
+                 { notetype = { speed = notetype.speed,
+                                volume = notetype.volume,
+                                fade = notetype.fade } },
+                 { label = label } }
+  local oktave = nil
+  for _, n in ipairs(stimme) do
+    local okt, ton, len = n[1], n[2], n[3]
+    if ton == "-" then
+      prog[#prog + 1] = { rest = len }
+    else
+      if okt ~= oktave then
+        prog[#prog + 1] = { octave = okt }
+        oktave = okt
+      end
+      prog[#prog + 1] = { note = ton, len = len }
+    end
+  end
+  prog[#prog + 1] = { loop = { count = 0, to = label } }
+  return prog
+end
+
+return {
+  meta = { melodie = laenge(MELODIE), bass = laenge(BASS) },
+  song = ChipAsm.song{
+    tempo = 0x150,
+    channels = {
+      { hw = 1, program = programm(MELODIE,
+          { duty = 2, speed = 12, volume = 10, fade = 2 }, "melodie") },
+      { hw = 2, program = programm(BASS,
+          { duty = 1, speed = 12, volume = 6, fade = 1 }, "bass") },
+    },
   },
 }

@@ -48,10 +48,18 @@ return function(mod)
     local chunk, hymnaErr = load(hymnaSource, "@" .. mod.path .. "/hymna.lua")
     local okSong, song = false, nil
     if chunk then okSong, song = pcall(chunk) end
-    if okSong and song then
-      mod.content.music:register("Music_PristonHymna", song)
+    if okSong and type(song) == "table" and song.meta
+       and song.meta.melodie ~= song.meta.bass then
+      mod.log:error("Hymne: Stimmen ungleich lang (%d vs %d) -- "
+        .. "Registrierung verweigert, Pallet Town behaelt sein "
+        .. "Vanilla-Thema", song.meta.melodie, song.meta.bass)
+      okSong = false
+    end
+    if okSong and type(song) == "table" and song.song then
+      mod.content.music:register("Music_PristonHymna", song.song)
       mod.hooks:wrap("music.select", function(next, chosen, ctx)
-        if ctx and ctx.reason == "map" and ctx.mapId == "PALLET_TOWN" then
+        if ctx and ctx.reason == "map" and ctx.mapId == "PALLET_TOWN"
+           and mod.options:get("hymne") then
           return next("Music_PristonHymna", ctx)
         end
         return next(chosen, ctx)
@@ -175,6 +183,8 @@ return function(mod)
       default = true },
     { key = "stink_aura", label = "STINK-AURA", type = "toggle",
       default = true },
+    { key = "hymne", label = "HYMNE", type = "toggle",
+      default = true },
   })
 
   -- ------- Euro-Wallet: der Frisoer nimmt kein Pokedollar
@@ -231,17 +241,24 @@ return function(mod)
     keyItem = true, tossable = false,
   })
 
+  local cesarParty = { { level = 14, species = "GROWLITHE" },
+                       { level = 18, species = "ARCANINE" } }
+  for _, slot in ipairs(cesarParty) do
+    if not mod.content.pokemon:get(slot.species) then
+      -- degrade statt Load-Fehler: auf exotischen Basen (andere Mods,
+      -- Fixtures) fehlt die Spezies -- dann kaempft CESAR mit dem, was da
+      -- ist, statt die ganze Mod zu reissen
+      mod.log:warn("%s fehlt in der Basis -- CESAR nutzt Ersatz",
+        slot.species)
+      for id in mod.content.pokemon:each() do slot.species = id break end
+    end
+  end
   mod.content.trainers:register("OPP_CESAR", {
     id = "OPP_CESAR",
     name = "CESAR",
     pic = mod.path .. "/assets/priston_cesar.png",
     baseMoney = 99,
-    parties = {
-      {
-        { level = 14, species = "GROWLITHE" },
-        { level = 18, species = "ARCANINE" },
-      },
-    },
+    parties = { cesarParty },
   })
 
   mod.content.map_scripts:register("PALLET_TOWN", {
@@ -526,6 +543,21 @@ return function(mod)
   -- Record. Hotkey 0 kollidiert weder mit den Engine-Keys (2-5) noch mit
   -- dem Voxel-Mod (3/5/6/7/8/9).
 
+  -- unter einer aktiven World-Pipeline (Voxel) pausiert TATRA ganz: der
+  -- Vollfenster-Present-Pfad kostet dort massiv FPS (gemessen 18 statt
+  -- 56) und das Diorama bringt seine eigene Optik mit. Einmal definiert,
+  -- keine Allokation pro Frame.
+  local function worldPipelineProbe()
+    return require("src.render.Pipelines").worldPipeline() ~= nil
+  end
+  local function tatraAvailable()
+    if not (love and love.graphics and love.graphics.newShader) then
+      return false
+    end
+    local ok, active = pcall(worldPipelineProbe)
+    return not (ok and active)
+  end
+
   local TATRA = {
     presets = {
       [1] = { strength = 0.45, vig = 0.30, grain = 0.015 },
@@ -650,18 +682,7 @@ return function(mod)
     levels = { "OFF", "1", "2", "3" },
     hotkey = "0",
     priority = 10,
-    available = function()
-      if not (love and love.graphics and love.graphics.newShader) then
-        return false
-      end
-      -- unter einer aktiven World-Pipeline (Voxel) pausiert TATRA ganz:
-      -- der Vollfenster-Present-Pfad kostet dort massiv FPS (gemessen
-      -- 18 statt 56) und das Diorama bringt seine eigene Optik mit
-      local ok, active = pcall(function()
-        return require("src.render.Pipelines").worldPipeline() ~= nil
-      end)
-      return not (ok and active)
-    end,
+    available = tatraAvailable,
     update = function(dt, level)
       TATRA.level = math.min(3, math.max(0, math.floor(tonumber(level) or 0)))
       TATRA.time = (TATRA.time + (dt or 0)) % 64
