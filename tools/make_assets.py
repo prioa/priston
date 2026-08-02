@@ -212,102 +212,148 @@ def make_back():
 
 # ------------------------------------------------------------- front pic
 
-def make_front():
-    """56x56 Portraet im Gen-1-Stil: PRISTON sitzt in 3/4-Pose -- echte
-    Schnauze, Brustwolle mit Fellkante, Pfoten mit Zehen, Sattel mit
-    gezackter Grenze, Cel-Shading (Basis/Schatten/Licht), Krone."""
-    KO = (30, 22, 16, 255)
-    T = (201, 144, 80, 255)
-    TS = (156, 101, 53, 255)
-    C = (238, 214, 171, 255)
-    CS = (204, 172, 124, 255)
-    S = (94, 64, 40, 255)
-    SD = (62, 42, 28, 255)
-    PK = (208, 136, 128, 255)
-    GO = (236, 190, 64, 255)
-    GD2 = (170, 126, 34, 255)
-    WH = (250, 250, 250, 255)
+# Token-Raster: das Portraet wird EINMAL mit semantischen Tonwerten
+# gezeichnet; Farb- und GB-Version entstehen aus demselben Master, die
+# Silhouetten-Outline wird automatisch nachgezogen. So gibt es keine
+# Quantisierungs-Flecken und beide Fassungen bleiben deckungsgleich.
+_T_EMPTY, _T_OUT, _T_TAN, _T_TAND, _T_CREAM, _T_CREAMD = 0, 1, 2, 3, 4, 5
+_T_SAD, _T_SADD, _T_PINK, _T_GOLD, _T_GOLDD, _T_EYEW, _T_TANL = 6, 7, 8, 9, 10, 11, 12
 
-    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
+_FRONT_COLORS = {
+    _T_OUT: (30, 22, 16, 255),
+    _T_TAN: (201, 144, 80, 255),
+    _T_TAND: (156, 101, 53, 255),
+    _T_CREAM: (238, 214, 171, 255),
+    _T_CREAMD: (204, 172, 124, 255),
+    _T_SAD: (94, 64, 40, 255),
+    _T_SADD: (62, 42, 28, 255),
+    _T_PINK: (208, 136, 128, 255),
+    _T_GOLD: (236, 190, 64, 255),
+    _T_GOLDD: (170, 126, 34, 255),
+    _T_EYEW: (250, 250, 250, 255),
+    _T_TANL: (224, 174, 112, 255),
+}
+_FRONT_GB = {
+    _T_OUT: 30, _T_SADD: 30,
+    _T_SAD: 90, _T_TAND: 90, _T_GOLDD: 90, _T_CREAMD: 90,
+    _T_TAN: 170, _T_GOLD: 170, _T_PINK: 170,
+    _T_CREAM: 240, _T_EYEW: 240, _T_TANL: 240,
+}
 
-    # Hinterlaeufe/Haunch rechts (er sitzt leicht nach rechts gedreht)
-    d.ellipse([30, 33, 54, 55], fill=T, outline=KO)
-    d.arc([30, 33, 54, 55], 100, 200, fill=TS)
-    d.line([(38, 44), (35, 52)], fill=TS)
-    d.ellipse([42, 49, 53, 55], fill=T, outline=KO)
-    d.line([(46, 51), (46, 54)], fill=TS)
-    d.line([(49, 51), (49, 54)], fill=TS)
 
-    # Rute: kringelt links hinter dem Koerper hervor
-    d.ellipse([1, 42, 14, 52], fill=S, outline=KO)
-    d.ellipse([2, 44, 9, 50], fill=T)
-    # Bauch/Rumpf
-    d.ellipse([6, 29, 45, 55], fill=T, outline=KO)
-    # Brust-/Halswolle: Creme mit gezackter Fellkante
-    d.polygon([(14, 30), (20, 26), (28, 25), (34, 28), (36, 34),
-               (35, 42), (30, 50), (24, 53), (18, 50), (13, 42)],
-              fill=C, outline=KO)
-    for zx, zy in ((14, 36), (16, 44), (33, 38), (31, 46)):
-        d.polygon([(zx, zy), (zx + 2, zy + 3), (zx - 1, zy + 3)], fill=C)
-    d.arc([13, 32, 35, 52], 40, 140, fill=CS)
+def _front_master():
+    tok = Image.new("P", (56, 56), _T_EMPTY)
+    d = ImageDraw.Draw(tok)
 
-    # Vorderlaeufe mit Zehen
-    d.rectangle([16, 40, 22, 54], fill=C, outline=KO)
-    d.rectangle([26, 41, 32, 55], fill=C, outline=KO)
-    d.line([(18, 51), (18, 54)], fill=CS)
-    d.line([(20, 51), (20, 54)], fill=CS)
-    d.line([(28, 52), (28, 55)], fill=CS)
-    d.line([(30, 52), (30, 55)], fill=CS)
-    d.arc([16, 40, 22, 54], 90, 200, fill=CS)
-
-    # Ohren
-    d.polygon([(15, 16), (10, 1), (24, 9)], fill=S, outline=KO)
-    d.polygon([(16, 13), (13, 5), (21, 10)], fill=PK)
-    d.polygon([(38, 16), (44, 1), (30, 9)], fill=S, outline=KO)
-    d.polygon([(37, 13), (41, 5), (33, 10)], fill=PK)
-    d.line([(17, 15), (15, 18)], fill=KO)
-    d.line([(36, 15), (38, 18)], fill=KO)
-
-    # Kopf
-    d.ellipse([13, 8, 41, 32], fill=T, outline=KO)
-    # Sattel-/Maskenzone oben mit gezackter Grenze
+    # ---- Grundformen (nur Fuellungen; Outline kommt automatisch) ----
+    d.ellipse([1, 41, 13, 53], fill=_T_SAD)            # Rute
+    d.ellipse([3, 43, 10, 50], fill=_T_TAN)
+    d.ellipse([29, 33, 54, 55], fill=_T_TAN)           # Haunch rechts
+    d.ellipse([7, 30, 46, 55], fill=_T_TAN)            # Rumpf
+    d.polygon([(16, 32), (22, 28), (30, 28), (36, 32), (37, 40),
+               (34, 48), (30, 53), (23, 53), (18, 48), (15, 40)],
+              fill=_T_CREAM)                           # Brustwolle
+    d.rectangle([17, 42, 22, 54], fill=_T_CREAM)       # Vorderlaeufe
+    d.rectangle([28, 43, 33, 55], fill=_T_CREAM)
+    d.polygon([(15, 17), (10, 2), (24, 9)], fill=_T_SAD)   # Ohr links
+    d.polygon([(38, 17), (44, 2), (30, 9)], fill=_T_SAD)   # Ohr rechts
+    d.polygon([(16, 13), (13, 5), (21, 10)], fill=_T_PINK)
+    d.polygon([(37, 13), (40, 5), (32, 10)], fill=_T_PINK)
+    d.polygon([(23, 8), (23, 2), (25, 5), (28, 0), (31, 5), (33, 2),
+               (33, 8)], fill=_T_GOLD)                 # Krone
+    d.ellipse([13, 8, 41, 32], fill=_T_TAN)            # Kopf
     d.polygon([(14, 20), (14, 13), (20, 8), (34, 8), (40, 13), (40, 20),
-               (36, 18), (32, 21), (27, 18), (22, 21), (18, 18)],
-              fill=S)
-    d.line([(15, 12), (20, 9)], fill=SD)
-    # Augenbrauen-Punkte
-    d.rectangle([19, 15, 22, 16], fill=T)
-    d.rectangle([32, 15, 35, 16], fill=T)
-    # Augen mit Glanzlicht
-    d.rectangle([20, 18, 23, 22], fill=KO)
-    d.rectangle([31, 18, 34, 22], fill=KO)
-    d.point([(21, 19), (32, 19)], fill=WH)
-    d.point([(22, 20), (33, 20)], fill=(120, 90, 60, 255))
+               (36, 17), (31, 20), (27, 17), (23, 20), (18, 17)],
+              fill=_T_SAD)                             # Maske mit Zacken
+    d.ellipse([20, 21, 34, 33], fill=_T_TANL)          # Schnauze
+    d.ellipse([23, 27, 31, 33], fill=_T_CREAM)         # Kinn/Lefzen
 
-    # Schnauze mit Nasenruecken und Lefzen
-    d.ellipse([20, 22, 34, 34], fill=T, outline=KO)
-    d.polygon([(24, 23), (30, 23), (29, 28), (25, 28)], fill=TS)
-    d.ellipse([22, 27, 32, 34], fill=C, outline=KO)
-    d.rectangle([25, 24, 29, 27], fill=KO)
-    d.point([(26, 25)], fill=(90, 70, 60, 255))
-    d.line([(27, 27), (27, 30)], fill=KO)
-    d.arc([23, 27, 31, 33], 20, 160, fill=KO)
-    d.point([(21, 30), (33, 30)], fill=TS)
+    # ---- Silhouetten-Outline automatisch nachziehen ----
+    px = tok.load()
+    edge = []
+    for y in range(56):
+        for x in range(56):
+            if px[x, y] == _T_EMPTY:
+                continue
+            for nx, ny in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)):
+                if nx < 0 or ny < 0 or nx > 55 or ny > 55 \
+                   or px[nx, ny] == _T_EMPTY:
+                    edge.append((x, y))
+                    break
+    for x, y in edge:
+        px[x, y] = _T_OUT
 
-    # Krone
-    d.polygon([(23, 7), (23, 2), (25, 0), (27, 3), (29, 0), (31, 3),
-               (33, 1), (33, 7)], fill=GO, outline=KO)
-    d.line([(23, 7), (33, 7)], fill=KO)
-    d.point([(25, 4), (28, 3), (31, 4)], fill=GD2)
+    # ---- Innenzeichnung ----
+    d.rectangle([19, 15, 22, 16], fill=_T_TAN)         # Brauen
+    d.rectangle([32, 15, 35, 16], fill=_T_TAN)
+    d.rectangle([20, 18, 23, 22], fill=_T_OUT)         # Augen
+    d.rectangle([31, 18, 34, 22], fill=_T_OUT)
+    px[21, 19] = _T_EYEW; px[32, 19] = _T_EYEW
+    d.rectangle([25, 23, 29, 26], fill=_T_OUT)         # Nase
+    px[26, 24] = _T_SADD
+    d.line([(27, 26), (27, 29)], fill=_T_OUT)          # Nasensteg
+    d.arc([23, 26, 31, 32], 20, 160, fill=_T_OUT)      # Maul
+    d.line([(20, 33), (34, 33)], fill=_T_OUT)          # Kinn-Abgrenzung
+    d.line([(21, 34), (33, 34)], fill=_T_CREAMD)
 
-    # Schattenkante + Kopf-Highlight
-    d.arc([6, 29, 45, 55], 110, 200, fill=TS)
-    d.arc([13, 8, 41, 32], 300, 340, fill=(224, 174, 112, 255))
+    # Ohr-Konturen innen (Basis vom Kopf trennen)
+    d.line([(16, 16), (20, 12)], fill=_T_OUT)
+    d.line([(37, 16), (33, 12)], fill=_T_OUT)
 
-    stink_wisps(d, [(3, 26), (50, 28)])
+    # Kronen-Innenzeichnung
+    d.line([(24, 7), (32, 7)], fill=_T_GOLDD)
+    px[26, 4] = _T_GOLDD; px[30, 4] = _T_GOLDD
 
+    # Beine: Zehen + Trennung von der Brust
+    for lx in (18, 20): d.line([(lx, 51), (lx, 53)], fill=_T_CREAMD)
+    for lx in (29, 31): d.line([(lx, 52), (lx, 54)], fill=_T_CREAMD)
+    d.line([(17, 41), (22, 41)], fill=_T_CREAMD)
+    d.line([(28, 42), (33, 42)], fill=_T_CREAMD)
+
+    # ---- Cel-Schatten mit Dither-Grenze (klassischer Gen-1-Look) ----
+    def shade(x0, x1, y0, y1, base, dark):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                if px[x, y] == base:
+                    if y > y0 + 1 or (x + y) % 2 == 0:
+                        px[x, y] = dark
+    shade(8, 15, 47, 54, _T_TAN, _T_TAND)              # Rumpf unten links
+    shade(36, 53, 48, 54, _T_TAN, _T_TAND)             # Haunch unten
+    shade(40, 50, 36, 41, _T_TAN, _T_TAND)             # Haunch-Kuppe
+    shade(14, 18, 24, 30, _T_TAN, _T_TAND)             # Wangenschatten
+    shade(36, 40, 24, 30, _T_TAN, _T_TAND)
+    # Haunch-Falte
+    d.line([(38, 42), (35, 50)], fill=_T_TAND)
+
+    return tok
+
+
+def make_front():
+    """Farbfassung aus dem Token-Master."""
+    tok = _front_master()
+    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
+    spx, px = tok.load(), img.load()
+    for y in range(56):
+        for x in range(56):
+            t = spx[x, y]
+            if t != _T_EMPTY:
+                px[x, y] = _FRONT_COLORS[t]
     img.save(os.path.join(OUT, "priston_front.png"))
+
+
+def make_front_gb():
+    """GB-Fassung aus demselben Master: 4 Remap-sichere Stufen, keine
+    Quantisierungs-Flecken."""
+    tok = _front_master()
+    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
+    spx, px = tok.load(), img.load()
+    for y in range(56):
+        for x in range(56):
+            t = spx[x, y]
+            if t != _T_EMPTY:
+                v = _FRONT_GB[t]
+                px[x, y] = (v, v, v, 255)
+    img.save(os.path.join(OUT, "priston_front_gb.png"))
 
 
 UMLAUTS = {
@@ -555,27 +601,6 @@ def make_cesar():
     d.line([(36, 24), (40, 25)], fill=LS)
 
     img.save(os.path.join(OUT, "priston_cesar.png"))
-
-
-def make_front_gb():
-    """Graustufen-Variante des Portraets fuer Eichs Intro: die Engine
-    toent Intro-Pics ueber die SGB-Palette (wie Oaks eigenes Bild), also
-    liefern wir 4 Remap-sichere Stufen (240/170/90/30) statt Farbe."""
-    src = Image.open(os.path.join(OUT, "priston_front.png")).convert("RGBA")
-    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
-    spx, px = src.load(), img.load()
-    for y in range(56):
-        for x in range(56):
-            r, g, b, a = spx[x, y]
-            if a == 0:
-                continue
-            luma = 0.299 * r + 0.587 * g + 0.114 * b
-            if luma > 200: v = 240
-            elif luma > 130: v = 170
-            elif luma > 60: v = 90
-            else: v = 30
-            px[x, y] = (v, v, v, 255)
-    img.save(os.path.join(OUT, "priston_front_gb.png"))
 
 
 if __name__ == "__main__":

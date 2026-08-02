@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1
+
+- Portraet-Rework v3: Token-Master-Architektur -- Farb- und GB-Fassung
+  entstehen aus demselben semantischen Raster, die Silhouetten-Outline
+  wird automatisch nachgezogen. Keine Quantisierungs-Flecken mehr im
+  Intro; Schattierung als saubere Cel-Flaechen mit Dither-Grenzen.
+
 ## 0.9.0
 
 - Grosser Umbau: Man spielt wieder den normalen Trainer -- PRISTON ist
