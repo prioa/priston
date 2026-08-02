@@ -66,7 +66,10 @@ Geruch, der mit dem Hund neben dem Spieler herzieht.
 2. **Akt 1:** Der Hof bucht einen FRISÖRTERMIN für Priston beim Salon
    in Mödling ("das Vollprogramm halt" — beiläufig). Beigelegt: ein
    versiegelter Umschlag, erst nach dem Besuch zu öffnen. Dem Salon
-   fehlen zwei Zutaten fürs königliche Protokoll.
+   fehlen zwei Zutaten fürs königliche Protokoll — und der Termin
+   kostet **100€**. Euro verdient der Spieler im Spiel (Trainer-Siege
+   +5€, wilde Siege +1€); der Stand steht permanent oben rechts. Der
+   Hof zahlt nicht — "Trainer zahlen dir doch PREISGELD".
 3. **Akt 2:** Lavendelwasser bei RENE (+ Leckerli-Mast, heal_party),
    Kräuterseife bei NICI, FLORIAN-Cameo.
 4. **Akt 3:** Der Frisörbesuch. CESAR platzt rein (Blamage-Motiv),
