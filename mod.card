@@ -18,6 +18,7 @@ return {
     known = {
       "Der Follower spawnt pro Map neu; beim Surfen paddelt er nicht mit",
       "Im Voxel-3D-Overworld erscheinen die Stinkwolken nicht (2D-Replay-Mechanik)",
+      "TATRA pausiert im Voxel-Modus automatisch (Performance); 2D unveraendert",
       "Die Shrink-Animation am Intro-Ende nutzt die Vanilla-Frames",
       "Trainer Card und Ruhmeshalle ignorieren trueColor -- das Portrait wird dort palettengetoent",
       "Deutsche Texte ohne Umlaute (Gen-1-Zeichensatz); Umlaut-Fontpage geplant",

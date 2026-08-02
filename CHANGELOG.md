@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.1
+
+- Performance-/Grafikfix im Voxel-Modus: TATRA pausiert automatisch,
+  solange eine World-Pipeline (Voxel-Diorama) rendert -- vorher
+  halbierte der Vollfenster-Present-Pass die Framerate (gemessen
+  18 statt 56 FPS: Stop-and-Go beim Laufen, stotternde Musik) und die
+  Playfield-Maske lag als heller Kasten ueber dem 3D-Bild. Im
+  klassischen 2D-Modus arbeitet TATRA unveraendert.
+
 ## 0.12.0
 
 - PRISTONs Grafiken werden jetzt aus der offiziellen Referenz

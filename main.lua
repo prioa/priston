@@ -651,8 +651,16 @@ return function(mod)
     hotkey = "0",
     priority = 10,
     available = function()
-      return love ~= nil and love.graphics ~= nil
-        and love.graphics.newShader ~= nil
+      if not (love and love.graphics and love.graphics.newShader) then
+        return false
+      end
+      -- unter einer aktiven World-Pipeline (Voxel) pausiert TATRA ganz:
+      -- der Vollfenster-Present-Pfad kostet dort massiv FPS (gemessen
+      -- 18 statt 56) und das Diorama bringt seine eigene Optik mit
+      local ok, active = pcall(function()
+        return require("src.render.Pipelines").worldPipeline() ~= nil
+      end)
+      return not (ok and active)
     end,
     update = function(dt, level)
       TATRA.level = math.min(3, math.max(0, math.floor(tonumber(level) or 0)))
@@ -661,6 +669,7 @@ return function(mod)
     present = function(canvas)
       local preset = TATRA.presets[TATRA.level]
       if not (preset and canvas) then return canvas end
+
       local sh = tatraShader()
       if not sh then return canvas end
       local w, h = canvas:getDimensions()
