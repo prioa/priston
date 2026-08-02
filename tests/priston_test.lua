@@ -27,20 +27,17 @@ T.eq(#run.errors, 0, "loads clean (" .. tostring(run.errors[1]) .. ")")
 local mod = run.mod
 T.check(mod ~= nil and mod.state == "loaded", "mod reached the loaded state")
 
--- ------- der Hund ist der Spieler
+-- ------- der Hund ist der Follower
+
+T.check(Data.field.playerSprites == nil
+        or Data.field.playerSprites.walk ~= "SPRITE_PRISTON",
+  "player sprites stay vanilla (Priston is a pet now)")
 
 local sprite = Data.sprites and Data.sprites.SPRITE_PRISTON
 T.check(sprite ~= nil, "SPRITE_PRISTON registered")
 T.eq(sprite.frames, 6, "walker sheet has 6 frames")
 T.check(sprite.walker == true, "sprite is a walker")
 T.check(sprite.trueColor == true, "walker opts out of the 4-shade remap")
-
--- der player.sprite-Hook markiert unsere farbigen Pics als trueColor
-local Sprites = require("src.pokemon.Sprites")
-local _, backTrue = Sprites.playerPath(Data, "back", { kind = "battle" })
-T.check(backTrue == true, "battle back pic resolves trueColor")
-local _, frontTrue = Sprites.playerPath(Data, "front", { kind = "intro" })
-T.check(frontTrue == true, "intro front pic resolves trueColor")
 
 -- Slowakei-Grading: jede Map-Palette hat eine SLOVAK_-Variante
 if Data.palettes and Data.palettes.palettes then
@@ -57,30 +54,12 @@ if Data.palettes and Data.palettes.palettes then
   T.eq(sampled, gradedOk, "graded variants carry 4-color tables")
 end
 
-T.eq(Data.field.playerSprites.walk, "SPRITE_PRISTON",
-  "player walks as PRISTON")
-T.check(Data.field.playerSprites.bike ~= "SPRITE_PRISTON",
-  "bike sprite stays vanilla (patch, not override)")
-T.check(Data.field.playerPics.back:find("priston_back", 1, true) ~= nil,
-  "battle back pic replaced")
-T.check(Data.field.playerPics.front:find("priston_front", 1, true) ~= nil,
-  "front pic replaced")
-
-local presets = Data.field.boot.namePresets
-T.eq(presets.player[1], "PRISTON", "PRISTON leads the player presets")
-T.eq(presets.rival[1], "CESAR", "CESAR leads the rival presets")
-T.check(#presets.player > 3, "vanilla player presets survive the prepend")
 
 T.check(Data.audio and Data.audio.cries and Data.audio.cries.PRISTON ~= nil,
   "PRISTON cry registered")
 
 -- ------- Rad, Wasser, Hymne, Umlaute
 
-T.check(Data.sprites.SPRITE_PRISTON_BIKE ~= nil, "bike walker registered")
-T.check(Data.sprites.SPRITE_PRISTON_SURF ~= nil, "surf walker registered")
-T.eq(Data.field.playerSprites.bike, "SPRITE_PRISTON_BIKE", "bike mapped")
-T.eq(Data.field.playerSprites.surf, "SPRITE_PRISTON_SURF", "surf mapped")
-T.check(Data.field.playerSprites.fly ~= "SPRITE_PRISTON", "fly stays vanilla")
 T.check(Data.audio and Data.audio.songs
         and Data.audio.songs.Music_PristonHymna ~= nil, "anthem registered")
 T.check(Data.font and Data.font.pages
@@ -120,11 +99,11 @@ T.check(order.world_spiel < order.priston_reveal
 T.eq(byId.priston_oath.kind, "yesno", "the oath is a yes/no")
 T.eq(byId.priston_oath.saveKey, "ehre_schwur", "oath writes ehre_schwur")
 T.eq(byId.priston_reveal.cry, "PRISTON", "reveal plays the dog's cry")
-T.eq(byId.priston_reveal.pic, "player",
-  "reveal uses the player shorthand (traegt trueColor)")
+T.check(type(byId.priston_reveal.pic) == "table"
+        and byId.priston_reveal.pic.type == "image"
+        and byId.priston_reveal.pic.path:find("front_gb", 1, true) ~= nil,
+  "reveal shows the GB-gray portrait (intro pics get palette-tinted)")
 T.check(byId.oak_welcome.text ~= nil, "welcome text replaced (German)")
-T.eq(byId.name_player.presets[1], "PRISTON", "naming screen leads with PRISTON")
-T.eq(byId.name_rival.presets[1], "CESAR", "rival naming leads with CESAR")
 
 -- ------- die Quest ist verdrahtet
 

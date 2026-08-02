@@ -213,63 +213,100 @@ def make_back():
 # ------------------------------------------------------------- front pic
 
 def make_front():
-    """56x56 portrait: PRISTON sitting, slightly too wide for the frame --
-    dark saddle mantle, tan brows on the dark forehead, black muzzle mask,
-    cream chest, the tricolor collar, and the small crooked gold crown."""
+    """56x56 Portraet im Gen-1-Stil: PRISTON sitzt in 3/4-Pose -- echte
+    Schnauze, Brustwolle mit Fellkante, Pfoten mit Zehen, Sattel mit
+    gezackter Grenze, Cel-Shading (Basis/Schatten/Licht), Krone."""
+    KO = (30, 22, 16, 255)
+    T = (201, 144, 80, 255)
+    TS = (156, 101, 53, 255)
+    C = (238, 214, 171, 255)
+    CS = (204, 172, 124, 255)
+    S = (94, 64, 40, 255)
+    SD = (62, 42, 28, 255)
+    PK = (208, 136, 128, 255)
+    GO = (236, 190, 64, 255)
+    GD2 = (170, 126, 34, 255)
+    WH = (250, 250, 250, 255)
+
     img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    # body: a big rounded mass, wider than tall
-    d.ellipse([6, 27, 49, 54], fill=T, outline=K)
-    # dark mantle over the shoulders
-    d.chord([6, 27, 49, 54], 180, 360, fill=S, outline=K)
-    # cream chest, sagging over the belly
-    d.ellipse([19, 32, 36, 54], fill=C, outline=K)
-    # front legs over the chest
-    d.rectangle([15, 44, 20, 54], fill=T, outline=K)
-    d.rectangle([35, 44, 40, 54], fill=T, outline=K)
+    # Hinterlaeufe/Haunch rechts (er sitzt leicht nach rechts gedreht)
+    d.ellipse([30, 33, 54, 55], fill=T, outline=KO)
+    d.arc([30, 33, 54, 55], 100, 200, fill=TS)
+    d.line([(38, 44), (35, 52)], fill=TS)
+    d.ellipse([42, 49, 53, 55], fill=T, outline=KO)
+    d.line([(46, 51), (46, 54)], fill=TS)
+    d.line([(49, 51), (49, 54)], fill=TS)
 
-    # ears first, so the head outline sits cleanly on their bases
-    d.polygon([(16, 18), (11, 3), (24, 12)], fill=S, outline=K)
-    d.polygon([(16, 15), (14, 7), (21, 12)], fill=P)
-    d.polygon([(39, 18), (44, 3), (31, 12)], fill=S, outline=K)
-    d.polygon([(39, 15), (41, 7), (34, 12)], fill=P)
-    # head
-    d.ellipse([15, 12, 40, 34], fill=T, outline=K)
-    # dark forehead cap
-    d.chord([15, 12, 40, 30], 180, 360, fill=S)
-    # tan brows on the dark cap
-    d.rectangle([20, 17, 24, 18], fill=T)
-    d.rectangle([31, 17, 35, 18], fill=T)
-    # eyes
-    d.rectangle([21, 19, 23, 22], fill=K)
-    d.rectangle([32, 19, 34, 22], fill=K)
-    d.point([(22, 20), (33, 20)], fill=W)  # catchlight
-    # muzzle: dark mask with a cream lower jaw
-    d.ellipse([22, 23, 33, 33], fill=B, outline=K)
-    d.ellipse([24, 28, 31, 33], fill=C)
-    d.rectangle([26, 24, 29, 27], fill=K)  # nose
-    d.line([(27, 27), (27, 30)], fill=K)
-    d.line([(24, 31), (31, 31)], fill=K)  # mouth
+    # Rute: kringelt links hinter dem Koerper hervor
+    d.ellipse([1, 42, 14, 52], fill=S, outline=KO)
+    d.ellipse([2, 44, 9, 50], fill=T)
+    # Bauch/Rumpf
+    d.ellipse([6, 29, 45, 55], fill=T, outline=KO)
+    # Brust-/Halswolle: Creme mit gezackter Fellkante
+    d.polygon([(14, 30), (20, 26), (28, 25), (34, 28), (36, 34),
+               (35, 42), (30, 50), (24, 53), (18, 50), (13, 42)],
+              fill=C, outline=KO)
+    for zx, zy in ((14, 36), (16, 44), (33, 38), (31, 46)):
+        d.polygon([(zx, zy), (zx + 2, zy + 3), (zx - 1, zy + 3)], fill=C)
+    d.arc([13, 32, 35, 52], 40, 140, fill=CS)
 
-    # leather collar between head and chest, one gold tag
-    d.line([(19, 34), (36, 34)], fill=PAL["l"])
-    d.line([(18, 35), (37, 35)], fill=PAL["l"])
-    d.line([(19, 36), (36, 36)], fill=PAL["l"])
-    d.point([(27, 35), (28, 35)], fill=G)
+    # Vorderlaeufe mit Zehen
+    d.rectangle([16, 40, 22, 54], fill=C, outline=KO)
+    d.rectangle([26, 41, 32, 55], fill=C, outline=KO)
+    d.line([(18, 51), (18, 54)], fill=CS)
+    d.line([(20, 51), (20, 54)], fill=CS)
+    d.line([(28, 52), (28, 55)], fill=CS)
+    d.line([(30, 52), (30, 55)], fill=CS)
+    d.arc([16, 40, 22, 54], 90, 200, fill=CS)
 
-    # the small crooked gold crown, one spike bent
-    d.polygon([(22, 11), (22, 6), (24, 1), (26, 6), (28, 0), (30, 6),
-               (33, 2), (33, 11)], fill=G, outline=K)
-    d.line([(22, 11), (33, 11)], fill=K)
-    d.point([(24, 8), (28, 7), (32, 8)], fill=GD)
+    # Ohren
+    d.polygon([(15, 16), (10, 1), (24, 9)], fill=S, outline=KO)
+    d.polygon([(16, 13), (13, 5), (21, 10)], fill=PK)
+    d.polygon([(38, 16), (44, 1), (30, 9)], fill=S, outline=KO)
+    d.polygon([(37, 13), (41, 5), (33, 10)], fill=PK)
+    d.line([(17, 15), (15, 18)], fill=KO)
+    d.line([(36, 15), (38, 18)], fill=KO)
 
-    # fur texture: dither the saddle/tan seams
-    px = img.load()
-    dither_edge(px, (7, 38, 48, 41), T, S)
-    dither_edge(px, (16, 28, 39, 30), T, S)
+    # Kopf
+    d.ellipse([13, 8, 41, 32], fill=T, outline=KO)
+    # Sattel-/Maskenzone oben mit gezackter Grenze
+    d.polygon([(14, 20), (14, 13), (20, 8), (34, 8), (40, 13), (40, 20),
+               (36, 18), (32, 21), (27, 18), (22, 21), (18, 18)],
+              fill=S)
+    d.line([(15, 12), (20, 9)], fill=SD)
+    # Augenbrauen-Punkte
+    d.rectangle([19, 15, 22, 16], fill=T)
+    d.rectangle([32, 15, 35, 16], fill=T)
+    # Augen mit Glanzlicht
+    d.rectangle([20, 18, 23, 22], fill=KO)
+    d.rectangle([31, 18, 34, 22], fill=KO)
+    d.point([(21, 19), (32, 19)], fill=WH)
+    d.point([(22, 20), (33, 20)], fill=(120, 90, 60, 255))
 
-    stink_wisps(d, [(2, 26), (50, 26), (6, 36), (48, 38)])
+    # Schnauze mit Nasenruecken und Lefzen
+    d.ellipse([20, 22, 34, 34], fill=T, outline=KO)
+    d.polygon([(24, 23), (30, 23), (29, 28), (25, 28)], fill=TS)
+    d.ellipse([22, 27, 32, 34], fill=C, outline=KO)
+    d.rectangle([25, 24, 29, 27], fill=KO)
+    d.point([(26, 25)], fill=(90, 70, 60, 255))
+    d.line([(27, 27), (27, 30)], fill=KO)
+    d.arc([23, 27, 31, 33], 20, 160, fill=KO)
+    d.point([(21, 30), (33, 30)], fill=TS)
+
+    # Krone
+    d.polygon([(23, 7), (23, 2), (25, 0), (27, 3), (29, 0), (31, 3),
+               (33, 1), (33, 7)], fill=GO, outline=KO)
+    d.line([(23, 7), (33, 7)], fill=KO)
+    d.point([(25, 4), (28, 3), (31, 4)], fill=GD2)
+
+    # Schattenkante + Kopf-Highlight
+    d.arc([6, 29, 45, 55], 110, 200, fill=TS)
+    d.arc([13, 8, 41, 32], 300, 340, fill=(224, 174, 112, 255))
+
+    stink_wisps(d, [(3, 26), (50, 28)])
+
     img.save(os.path.join(OUT, "priston_front.png"))
 
 
@@ -456,50 +493,89 @@ def make_stink():
 
 
 def make_cesar():
-    """56x56 Trainer-Pic: CESAR, der grosse weisse Huetehund von nebenan --
-    aufgeplustert, Ohren zurueck, Zaehne gebleckt. 4 Graustufen auf
-    opakem Weiss wie die extrahierten Trainer-Pics; das SGB-Zonen-Remap
-    faerbt ihn dann wie jeden Vanilla-Trainer."""
-    L2 = (216, 216, 216, 255)   # helles Fell
-    img = Image.new("RGBA", (56, 56), (255, 255, 255, 255))
+    """56x56 Trainer-Pic im Gen-1-Stil: CESAR breitbeinig in
+    3/4-Drohhaltung -- EIN solider Koerperumriss, Nackenkamm auf der
+    Rueckenlinie, gesenkter Kopf mit gebleckten Zaehnen, tiefe Rute."""
+    BG = (255, 255, 255, 255)
+    W = (240, 240, 240, 255)
+    LS = (170, 170, 170, 255)
+    MD = (90, 90, 90, 255)
+    KO = (30, 30, 30, 255)
+
+    img = Image.new("RGBA", (56, 56), BG)
     d = ImageDraw.Draw(img)
 
-    # maechtiger Fellkoerper
-    d.ellipse([4, 24, 51, 55], fill=L2, outline=K)
-    # Fell-Zacken am Ruecken (aufgeplustert)
-    for x0 in range(6, 48, 6):
-        d.polygon([(x0, 28), (x0 + 3, 21), (x0 + 6, 28)], fill=L2, outline=K)
-    # Brustwolke
-    d.ellipse([18, 34, 37, 55], fill=(240, 240, 240, 255))
-    # Kopf, leicht gesenkt (Drohhaltung)
-    d.ellipse([14, 8, 41, 32], fill=L2, outline=K)
-    # Ohren flach nach hinten
-    d.polygon([(15, 14), (6, 10), (16, 22)], fill=L2, outline=K)
-    d.polygon([(40, 14), (49, 10), (39, 22)], fill=L2, outline=K)
-    # zornige Brauen + enge Augen
-    d.line([(20, 15), (26, 18)], fill=K)
-    d.line([(35, 15), (29, 18)], fill=K)
-    d.rectangle([22, 18, 25, 20], fill=K)
-    d.rectangle([30, 18, 33, 20], fill=K)
-    # Schnauze mit gebleckten Zaehnen
-    d.ellipse([21, 21, 34, 31], fill=(240, 240, 240, 255), outline=K)
-    d.rectangle([25, 22, 30, 24], fill=K)          # Nase
-    d.line([(22, 27), (33, 27)], fill=K)           # Lefze
-    for tx in (23, 26, 29, 32):                    # Zaehne
-        d.polygon([(tx, 27), (tx + 1, 29), (tx + 2, 27)], fill=(96, 96, 96, 255))
-    # Knurr-Linien
-    d.line([(10, 6), (14, 9)], fill=(96, 96, 96, 255))
-    d.line([(45, 6), (41, 9)], fill=(96, 96, 96, 255))
+    # Rute: tief und buschig hinter der Hinterhand
+    d.polygon([(6, 36), (0, 40), (1, 47), (8, 45)], fill=W, outline=KO)
+    d.line([(4, 41), (6, 43)], fill=LS)
 
-    # auf die 4 Graustufen klemmen, Weiss bleibt opak
-    px = img.load()
+    # EIN solider Koerper (Hinterhand bis Brust)
+    d.ellipse([3, 22, 49, 53], fill=W, outline=KO)
+    # Nackenkamm: Zacken direkt auf der oberen Koerperkante
+    for x0, ytop in ((8, 27), (14, 24), (20, 22), (26, 21)):
+        d.polygon([(x0, ytop + 6), (x0 + 3, ytop - 2), (x0 + 6, ytop + 5)],
+                  fill=W, outline=KO)
+    # Kammbasis wieder schliessen (Fell verdeckt die Ellipsenlinie)
+    d.line([(9, 28), (32, 24)], fill=W)
+    # Schattierung
+    d.arc([3, 22, 49, 53], 100, 210, fill=LS)
+    d.line([(14, 36), (11, 46)], fill=LS)          # Haunch-Falte
+
+    # Beine: breitbeinig, mit Zehen
+    d.rectangle([8, 46, 15, 55], fill=W, outline=KO)
+    d.rectangle([21, 44, 28, 55], fill=W, outline=KO)
+    d.rectangle([35, 45, 42, 55], fill=W, outline=KO)
+    for lx in (10, 12): d.line([(lx, 52), (lx, 55)], fill=LS)
+    for lx in (23, 25): d.line([(lx, 51), (lx, 55)], fill=LS)
+    for lx in (37, 39): d.line([(lx, 52), (lx, 55)], fill=LS)
+
+    # Ohren flach angelegt
+    d.polygon([(29, 14), (21, 5), (33, 9)], fill=W, outline=KO)
+    d.polygon([(29, 13), (25, 8), (31, 10)], fill=MD)
+    d.polygon([(48, 15), (55, 7), (44, 10)], fill=W, outline=KO)
+    d.polygon([(47, 14), (51, 9), (45, 11)], fill=MD)
+
+    # Kopf: gesenkt, vorn rechts, klar VOR dem Koerper
+    d.ellipse([25, 9, 51, 33], fill=W, outline=KO)
+    d.arc([25, 9, 51, 33], 130, 220, fill=LS)
+    # Brauen + Augen
+    d.line([(30, 16), (36, 19)], fill=KO)
+    d.line([(46, 15), (40, 18)], fill=KO)
+    d.rectangle([32, 19, 35, 21], fill=KO)
+    d.rectangle([41, 18, 44, 20], fill=KO)
+    d.point([(33, 20), (42, 19)], fill=W)
+
+    # Schnauze mit offenem Maul + Zahnreihe
+    d.ellipse([35, 21, 54, 34], fill=W, outline=KO)
+    d.polygon([(51, 23), (54, 25), (54, 29), (50, 28)], fill=KO)
+    d.line([(39, 26), (50, 27)], fill=LS)
+    d.polygon([(37, 29), (52, 30), (50, 35), (38, 33)], fill=MD, outline=KO)
+    for tx in range(39, 49, 3):
+        d.polygon([(tx, 30), (tx + 1, 33), (tx + 2, 30)], fill=W)
+    d.line([(36, 24), (40, 25)], fill=LS)
+
+    img.save(os.path.join(OUT, "priston_cesar.png"))
+
+
+def make_front_gb():
+    """Graustufen-Variante des Portraets fuer Eichs Intro: die Engine
+    toent Intro-Pics ueber die SGB-Palette (wie Oaks eigenes Bild), also
+    liefern wir 4 Remap-sichere Stufen (240/170/90/30) statt Farbe."""
+    src = Image.open(os.path.join(OUT, "priston_front.png")).convert("RGBA")
+    img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
+    spx, px = src.load(), img.load()
     for y in range(56):
         for x in range(56):
-            r = px[x, y][0]
-            v = min((255, 216, 96, 0), key=lambda s: abs(s - r))
-            if v == 216: v = 176
+            r, g, b, a = spx[x, y]
+            if a == 0:
+                continue
+            luma = 0.299 * r + 0.587 * g + 0.114 * b
+            if luma > 200: v = 240
+            elif luma > 130: v = 170
+            elif luma > 60: v = 90
+            else: v = 30
             px[x, y] = (v, v, v, 255)
-    img.save(os.path.join(OUT, "priston_cesar.png"))
+    img.save(os.path.join(OUT, "priston_front_gb.png"))
 
 
 if __name__ == "__main__":
@@ -512,4 +588,5 @@ if __name__ == "__main__":
     make_bike()
     make_surf()
     make_cesar()
+    make_front_gb()
     print("wrote priston_walk.png, priston_back.png, priston_front.png")

@@ -1,18 +1,17 @@
--- priston: Du spielst PRISTON -- einen uebergewichtigen Schaeferhund, der
--- aus dem Koenigshaus der Slowakei verbannt wurde, weil er zu sehr stinkt.
--- Overworld-Walker, Battle-Backpic und Trainer-Portrait werden ersetzt,
--- und Prof. Eichs Intro erzaehlt die Verbannungs-Geschichte auf Deutsch.
+-- priston: Dein Haustier PRISTON -- ein uebergewichtiger Schaeferhund,
+-- verbannt aus dem Koenigshaus der Slowakei, weil er zu sehr stinkt --
+-- laeuft als Follower neben dem Spieler her. Prof. Eichs Intro erzaehlt
+-- seine Geschichte, eine Quest fuehrt zum Hundefrisoer nach Moedling.
 --
 -- Alle Pixel sind Originalarbeit aus tools/make_assets.py; es werden keine
 -- ROM-Daten ausgeliefert.
 return function(mod)
   local walk = mod.path .. "/assets/priston_walk.png"
-  local back = mod.path .. "/assets/priston_back.png"
-  local front = mod.path .. "/assets/priston_front.png"
+  local frontGb = mod.path .. "/assets/priston_front_gb.png"
 
-  -- ------- der Hund selbst: Walker-Sheet + Battle-Pics
-  -- trueColor: die PNGs bringen echte GBA-Farben und echtes Alpha mit;
-  -- das Flag nimmt sie vom 4-Graustufen-Remap der Engine aus
+  -- ------- der Hund selbst: Walker-Sheet fuer den Follower
+  -- trueColor: das PNG bringt echte GBA-Farben und echtes Alpha mit;
+  -- das Flag nimmt es vom 4-Graustufen-Remap der Engine aus
 
   mod.content.sprites:register("SPRITE_PRISTON", {
     id = "SPRITE_PRISTON",
@@ -21,38 +20,6 @@ return function(mod)
     walker = true,
     trueColor = true,
   })
-
-  mod.content.sprites:register("SPRITE_PRISTON_BIKE", {
-    id = "SPRITE_PRISTON_BIKE",
-    image = mod.path .. "/assets/priston_bike.png",
-    frames = 6, walker = true, trueColor = true,
-  })
-  mod.content.sprites:register("SPRITE_PRISTON_SURF", {
-    id = "SPRITE_PRISTON_SURF",
-    image = mod.path .. "/assets/priston_surf.png",
-    frames = 6, walker = true, trueColor = true,
-  })
-
-  -- patch, nicht override: fly bleibt Vanilla (der Vogel traegt ihn)
-  mod.content.field:patch("playerSprites", {
-    walk = "SPRITE_PRISTON",
-    bike = "SPRITE_PRISTON_BIKE",
-    surf = "SPRITE_PRISTON_SURF",
-  })
-  mod.content.field:patch("playerPics", { back = back, front = front })
-
-  -- playerPics kennt kein trueColor-Feld; der Hook ist der sanktionierte
-  -- Weg: ctx.trueColor = true nimmt unsere farbigen Pics aus der
-  -- Paletten-Quantisierung (BattleState getImage / OakSpeech resolvePic)
-  mod.hooks:wrap("player.sprite", function(next, path, ctx)
-    local out = next(path, ctx)
-    local effective = type(out) == "string" and out or path
-    if type(effective) == "string"
-       and effective:find("priston_", 1, true) then
-      ctx.trueColor = true
-    end
-    return out
-  end)
 
   -- ------- echte Umlaute: eigene Font-Seite oberhalb der Vanilla-Codes
   -- (Basis 0x120; die Kana-Beispielseite der Doku liegt bei 0x100)
@@ -130,23 +97,6 @@ return function(mod)
     return nil, nil
   end
 
-  mod.hooks:wrap("battle.overlay", function(next, battle)
-    local out = next(battle)
-    if battle and battle.showPlayerBack then
-      local img, quads = stinkImage()
-      if img then
-        pcall(function()
-          local f = stinkFrame()
-          love.graphics.setColor(1, 1, 1, 0.85)
-          love.graphics.draw(img, quads[f], 14, 34, 0, 2, 2)
-          love.graphics.draw(img, quads[(f + 2) % 4], 36, 42, 0, 2, 2)
-          love.graphics.setColor(1, 1, 1, 1)
-        end)
-      end
-    end
-    return out
-  end)
-
   -- Overworld-Fix fuer trueColor-Walker (engine_internals): markTrueColor
   -- nimmt das ganze 16x16-Feld vom SGB-Zonen-Shader aus, wodurch unter den
   -- transparenten Pixeln die UNgefaerbte Welt (DMG-Weiss) durchscheint --
@@ -214,15 +164,6 @@ return function(mod)
     end
   end)
 
-  -- __prepend statt Listen-Ersatz: die Vanilla-Namen bleiben waehlbar,
-  -- PRISTON steht nur zuerst
-  mod.content.field:patch("boot", {
-    namePresets = {
-      player = { __prepend = { "PRISTON", "SMRAD", "BOBIK" } },
-      rival = { __prepend = { "CESAR", "REX", "LORD" } },
-    },
-  })
-
   -- ------- Slowakei-Color-Grading
   -- Jede Map-Palette bekommt beim Laden eine kuehle Tatra-Variante
   -- (warme Kanaele runter, Blau hoch); der map.palette-Hook schaltet per
@@ -287,10 +228,10 @@ return function(mod)
         { "check_flag", Q_DONE }, { "jump_if_true", "fertig" },
         { "check_flag", Q_START }, { "jump_if_true", "laufend" },
         { "face_player" },
-        { "show_text", "PRISTON! Da bist\ndu ja!\f"
+        { "show_text", "Da seid ihr ja --\ndu und PRISTON!\f"
           .. "Ein Brief vom\nKÖNIGSHOF -- an\vmeinen SALON:\f"
-          .. "\"Wir hören, der\nVerbannte sammelt\vORDEN. Schön.\"\f"
-          .. "\"Aber ZUERST hat\ner einen TERMIN\vbeim FRISÖR.\"\f"
+          .. "\"An den HALTER des\nVerbannten:\"\f"
+          .. "\"PRISTON hat einen\nTERMIN beim\vFRISÖR.\"\f"
           .. "\"Danach öffnet den\nUMSCHLAG, der\vbeiliegt.\"" },
         { "show_text", "Ein Frisörbesuch\nalso! Waschen,\vBürsten, Krallen --\vdas Vollprogramm\vhalt.\f"
           .. "Nur fehlt mir was\nfürs KÖNIGLICHE\vProtokoll:\f"
@@ -304,7 +245,7 @@ return function(mod)
         { "check_item", SEIFE }, { "jump_if_false", "erinnern" },
         { "take_item", WASSER },
         { "take_item", SEIFE },
-        { "show_text", "Alles da! Dann ab\nauf den Tisch.\f"
+        { "show_text", "Alles da! Rauf mit\nPRISTON auf den\vTisch.\f"
           .. "Waschen! Bürsten!\nKrallen! FÖHN!" },
         { "emote", "player", "happy", 45 },
         { "wait", 20 },
@@ -321,23 +262,25 @@ return function(mod)
         { "show_text", "CESAR zieht\nwinselnd ab!\f"
           .. "Der UMSCHLAG...\fDas KÖNIGSSIEGEL.\nECHT!\f"
           .. "{PLAYER} erhält das\nKÖNIGSSIEGEL!" },
-        { "show_text", "Da steht noch was:\f\"Der Hof erwartet\ndich zurück.\"\f"
-          .. "Und? Kehrst du\nheim?" },
+        { "show_text", "Da steht noch was:\f\"Der Hof erwartet\nPRISTON zurück.\"\f"
+          .. "Und? Gebt ihr\nihn her?" },
         { "choice", { "ZUM HOF", "BLEIBEN" } },
         { "jump_if_false", "kanto" },
         { "set_field", "mod:entscheidung", "hof" },
         { "set_flag", Q_DONE },
-        { "show_text", "Dann lauf, du\nsauberer Hund!\f"
-          .. "Und besuch uns --\nWENN die Samt-\vkissen langweilig\vwerden." },
+        { "show_text", "Der Hof also...\f"
+          .. "PRISTON schaut\ndich lange an...\f"
+          .. "...und setzt sich\nauf deinen Fuß.\f"
+          .. "Er bleibt. Manche\nDinge schlagen\vSAMTKISSEN." },
         { "jump", "end" },
 
         { "label", "kanto" },
         { "set_field", "mod:entscheidung", "kanto" },
         { "set_flag", Q_DONE },
-        { "show_text", "Ha! Wusste ich es.\f"
+        { "show_text", "Gute Wahl!\f"
           .. "LECKERLIS schlagen\nSAMTKISSEN.\f"
           .. "Und irgendwer muss\nCESAR ja was zum\vBellen geben.\f"
-          .. "Willkommen daheim,\nPRISTON." },
+          .. "Der bleibt bei\ndir, das sieht\vdoch jeder." },
         { "jump", "end" },
 
         { "label", "verloren" },
@@ -368,6 +311,7 @@ return function(mod)
         { "check_flag", Q_RENE }, { "jump_if_true", "danach" },
         { "face_player" },
         { "show_text", "RENE: PRISTON!\nAlter Stinker!\f"
+          .. "Und du bist also\nder HALTER.\vRespekt.\f"
           .. "LAVENDELWASSER für\nden FRISÖRTERMIN?\f"
           .. "Klar. Für dich\ndoch immer." },
         { "give_item", WASSER, 1, false },
@@ -398,7 +342,7 @@ return function(mod)
         { "check_flag", Q_START }, { "jump_if_false", "vanilla" },
         { "check_flag", Q_NICI }, { "jump_if_true", "danach" },
         { "face_player" },
-        { "show_text", "NICI: Ah. Der\n\"KÖNIGSHUND\".\vSoso.\f"
+        { "show_text", "NICI: Ah. Der Bub\nmit dem \"KÖNIGS-\vHUND\". Soso.\f"
           .. "Na, Hauptsache\nsauber.\f"
           .. "Die KRÄUTERSEIFE\nist frisch\vgekocht. Hier!" },
         { "give_item", SEIFE, 1, false },
@@ -474,6 +418,7 @@ return function(mod)
     for _, npc in ipairs(ow.npcs) do
       local nx, ny = npc.cellX, npc.cellY
       if nx and ny
+         and not (npc.def and npc.def.name == FOLLOWER)
          and math.abs(nx - ev.x) + math.abs(ny - ev.y) == 1
          and not stinkSeen[npc.id or (nx .. "," .. ny)]
          and love.math.random(3) == 1 then
@@ -684,6 +629,89 @@ return function(mod)
     length = 160,
   })
 
+  -- ------- PRISTON laeuft mit: der Follower
+  -- Ein Laufzeit-NPC folgt dem Spieler eine Zelle versetzt: bei jedem
+  -- Schritt geht er auf die soeben verlassene Zelle. Faellt er weiter
+  -- als 3 Zellen zurueck (Bike, Warp innerhalb der Map), wird er direkt
+  -- hinter den Spieler gesetzt. Auf jeder Map spawnt er neu -- Laufzeit-
+  -- Objekte werden von der Engine bewusst nicht serialisiert.
+
+  local FOLLOWER = "PRISTON_FOLLOWER"
+  local follower = { active = false, moving = false, prevX = nil, prevY = nil }
+
+  local function behindCell(px, py, facing)
+    if facing == "up" then return px, py + 1 end
+    if facing == "down" then return px, py - 1 end
+    if facing == "left" then return px + 1, py end
+    return px - 1, py
+  end
+
+  mod.events:on("map.entered", function(ev)
+    follower.active, follower.moving = false, false
+    local world = mod.world
+    local ow = world and world.overworld and world:overworld()
+    local player = ow and ow.player
+    if not player or not player.cellX then return end
+    local bx, by = behindCell(player.cellX, player.cellY,
+                              player.facing or "down")
+    local ok = world:spawnNpc(ev.mapId, {
+      name = FOLLOWER,
+      sprite = "SPRITE_PRISTON",
+      movement = "STAY",
+      x = bx, y = by,
+    })
+    if ok then
+      follower.active = true
+      follower.prevX, follower.prevY = player.cellX, player.cellY
+    end
+  end)
+
+  mod.events:on("world.stepped", function(ev)
+    if not follower.active then return end
+    local world = mod.world
+    local handle = world and world:npc(ev.mapId, FOLLOWER)
+    if not handle then follower.active = false; return end
+    local npc = handle.npc
+    local tx, ty = follower.prevX, follower.prevY
+    follower.prevX, follower.prevY = ev.x, ev.y
+    if not (npc and npc.cellX and tx) then return end
+    local dx, dy = tx - npc.cellX, ty - npc.cellY
+    if dx == 0 and dy == 0 then return end
+    if math.abs(dx) + math.abs(dy) > 3 then
+      -- Anschluss verloren: direkt auf die verlassene Zelle setzen
+      npc.cellX, npc.cellY = tx, ty
+      if npc.px then npc.px, npc.py = tx * 16, ty * 16 end
+      follower.moving = false
+      return
+    end
+    if follower.moving then return end
+    local dir
+    if math.abs(dx) >= math.abs(dy) then
+      dir = dx > 0 and "right" or "left"
+    else
+      dir = dy > 0 and "down" or "up"
+    end
+    follower.moving = true
+    handle:scriptMove(dir, 1, function() follower.moving = false end)
+  end)
+
+  -- Der Spieler darf durch seinen Hund hindurchtreten (der weicht beim
+  -- naechsten Schritt ohnehin auf die verlassene Zelle aus)
+  mod.hooks:wrap("movement.collision", function(next, allowed, ctx)
+    local out = next(allowed, ctx)
+    if out or not follower.active or not ctx then return out end
+    local world = mod.world
+    local ow = world and world.overworld and world:overworld()
+    if not (ow and ctx.mover == ow.player) then return out end
+    for _, npc in ipairs(ow.npcs or {}) do
+      if npc.def and npc.def.name == FOLLOWER
+         and npc.cellX == ctx.toX and npc.cellY == ctx.toY then
+        return true
+      end
+    end
+    return out
+  end)
+
   -- ------- das Intro: Prof. Eich erzaehlt die Verbannung
 
   mod.hooks:wrap("intro.oak_speech.build", function(next, steps, speech)
@@ -704,66 +732,62 @@ return function(mod)
 
     byId.oak_welcome.text = "Willkommen in der\nWelt der POKéMON!\f"
       .. "Ich bin PROF.\nEICH.\f"
-      .. "Jedes Jahr schicke\nich neue Trainer\vauf die Reise.\f"
-      .. "Doch dieses Jahr\nist einer dabei,\vder... anders ist."
+      .. "Du bekommst heute\ndeinen ersten\vPartner!\f"
+      .. "Und wie ich sehe,\nkommt dein HUND...\veinfach MIT."
 
     byId.world_spiel.text = "Dies ist der\nBEZIRK MÖDLING.\f"
       .. "Die Einheimischen\nnennen ihn KANTO.\vFrag nicht.\f"
       .. "Hier zieht jeder\nTrainer mit\vPOKéMON los.\f"
-      .. "Dieses Jahr auch:\nein HUND."
+      .. "Du eben mit\nPOKéMON und HUND."
 
     mod.ui.insertStepAfter(steps, "world_spiel", {
       id = "priston_reveal",
       kind = "say",
-      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
+      pic = { type = "image", path = frontGb },
       reveal = "fade",
       cry = "PRISTON",
-      text = "Dies ist PRISTON.\f"
-        .. "Ein SCHÄFERHUND --\nund zwar aus dem\vKÖNIGSHAUS der\vSLOWAKEI.\f"
-        .. "Ein stattlicher\nHund. Sehr...\vstattlich.",
+      text = "Das ist PRISTON.\nDEIN Hund.\f"
+        .. "Ein SCHÄFERHUND --\naus dem KÖNIGSHAUS\vder SLOWAKEI.\f"
+        .. "Ja. WIRKLICH.",
     })
     mod.ui.insertStepAfter(steps, "priston_reveal", {
       id = "priston_story",
       kind = "say",
-      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
+      pic = { type = "image", path = frontGb },
       text = "Er hatte alles:\nSamtkissen!\vEinen BUTLER!\vLECKERLI auf\vSilber!\f"
         .. "Doch dann kam der\nschwarze Tag...",
     })
     mod.ui.insertStepAfter(steps, "priston_story", {
       id = "priston_banished",
       kind = "say",
-      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
+      pic = { type = "image", path = frontGb },
       text = "VERBANNT!\nWegen GESTANKS.\f"
         .. "Kein Bad half.\nKein Parfüm.\vNichts half.\f"
         .. "So wanderte er\nüber die Berge --\f"
-        .. "und fand hier im\nBEZIRK ein neues\vDAHEIM.",
+        .. "und landete vor\nEURER Tür.",
     })
     mod.ui.insertStepAfter(steps, "priston_banished", {
       id = "priston_oath",
       kind = "yesno",
-      pic = "player",  -- "player" traegt playerTrueColor; type="image" nicht
+      pic = { type = "image", path = frontGb },
       saveKey = "ehre_schwur",
-      text = "Nur: kaum jemand\nGLAUBT ihm das.\f"
-        .. "PRISTON! Wirst du\nihnen ALLEN\vbeweisen, wer du\vwirklich bist?",
+      text = "Seither weicht er\ndir nicht von der\vSeite.\f"
+        .. "Wirst du ihm\nhelfen zu beweisen,\vwer er WIRKLICH\vist?",
     })
 
-    byId.ask_player_name.text = "Doch zuerst...\f"
-      .. "Wie nennt man dich\nam Hofe?"
+    byId.ask_player_name.text = "Doch zuerst:\nWie heißt DU?"
     byId.name_player.title = "DEIN NAME?"
-    byId.name_player.presets = { "PRISTON", "SMRAD", "BOBIK" }
 
-    byId.ask_rival_name.text = "EINER glaubt ihm\nkein Wort:\f"
-      .. "CESAR. Der große\nweiße HÜTEHUND\vvon nebenan.\f"
-      .. "\"Königshaus? Dass\nich nicht BELLE!\"\f"
-      .. "Und jetzt zieht er\nSELBST als Trainer\vlos --\f"
-      .. "nur um dabei zu-\nzusehen, wie du\vSCHEITERST!"
+    byId.ask_rival_name.text = "Das ist dein\nRivale von nebenan.\f"
+      .. "Und SEIN Hund:\nCESAR.\f"
+      .. "Der große weiße\nHÜTEHUND, der\vPRISTON jeden Tag\vanbellt.\f"
+      .. "\"Königshaus? Dass\nich nicht BELLE!\""
     byId.name_rival.title = "SEIN NAME?"
-    byId.name_rival.presets = { "CESAR", "REX", "LORD" }
 
-    byId.legend.text = "{PLAYER}!\nDeine Reise\vbeginnt jetzt!\f"
-      .. "Sammle ORDEN.\nFang POKéMON.\vBeweise dich.\f"
-      .. "Ach ja -- und geh\nirgendwann zum\vFRISÖR.\f"
-      .. "Du weißt schon,\nwarum."
+    byId.legend.text = "{PLAYER}!\nEure Reise beginnt!\f"
+      .. "Sammle ORDEN.\nFang POKéMON.\f"
+      .. "Und geh mit\nPRISTON irgendwann\vzum FRISÖR.\f"
+      .. "Du riechst schon,\nwarum."
 
     return steps
   end)

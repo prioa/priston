@@ -1,43 +1,39 @@
 # Priston
 
-Du spielst PRISTON — einen uebergewichtigen Schaeferhund, der aus dem
-Koenigshaus der Slowakei verbannt wurde, weil er zu sehr stinkt. Der Mod
-ersetzt Laufsprite, Battle-Backpic und Trainer-Portrait des Spielers und
-erzaehlt die Verbannungs-Geschichte in Prof. Eichs Intro auf Deutsch.
+Dein Haustier PRISTON — ein übergewichtiger Schäferhund, der wegen
+seines Gestanks aus dem Königshaus der Slowakei verbannt wurde — läuft
+als Follower neben dir her. Prof. Eichs Intro erzählt seine Geschichte
+auf Deutsch, eine Quest führt zum Hundefrisör nach Mödling, und CESAR,
+der Hund deines Rivalen, bellt ihn dabei unermüdlich an.
 
 ## Ausprobieren
 
 ```sh
-# im gen1recomp-Checkout, mit diesem Repo als mods/priston eingehaengt:
+# im gen1recomp-Checkout, mit diesem Repo als mods/priston:
 python3 tools/modkit.py validate mods/priston
-python3 tools/modkit.py lint mods/priston
 POKEPORT_DEV=1 love .        # F10: Mod-Manager, priston aktivieren, NEW GAME
 ```
 
 ## Was drin ist
 
-- `SPRITE_PRISTON`: eigenes 6-Frame-Walker-Sheet (watschelnder Gang) in
-  GBA-Farben mit echtem Alpha (`trueColor`, kein Graustufen-Remap)
-- `field.playerPics`: Rueckenansicht im Kampf + Portrait (Intro, Trainer
-  Card, Ruhmeshalle) -- Schaeferhund-Farben, Trikolore-Halsband, schiefe
-  Goldkrone, gruene Stinkschwaden
-- Shader-Pipeline **TATRA** (Hotkey `0` oder Options-Zeile, Stufen
-  OFF/1/2/3): kuehle Weissbalance, S-Kurven-Kontrast, Split-Toning,
-  Vignette und Filmkorn ueber dem ganzen Bild -- komponiert mit dem
-  DramaticShape-Voxel-Mod, dessen Hotkeys (3/5-9) unberuehrt bleiben
-- Option **SLOWAKEI-LOOK** (standardmaessig an): kuehles Tatra-Color-
-  Grading aller Map-Paletten ueber den `map.palette`-Hook; Vanilla-
-  Paletten bleiben unangetastet
-- Deutsches Intro: vier neue Story-Steps (Hof, Verbannung, Ehrenschwur als
-  Ja/Nein-Frage, Antwort landet in `mod.save`), Rivale = GASTON, der neue
-  Liebling des Hofes
-- Cry `PRISTON`: ein tiefes Chip-Wuff (ChipAsm, original)
+- **Follower:** PRISTON (eigenes trueColor-Walker-Sheet mit echtem
+  Alpha) folgt dem Spieler Zelle für Zelle, mit animierten
+  Stinkschwaden; man kann durch ihn hindurchtreten
+- **Deutsches Intro** mit echten Umlauten (eigene Font-Seite) und
+  GB-getöntem Porträt: Herkunft, Verbannung, Ankunft — und CESAR
+- **Quest "Die Ehre zurück":** Frisörtermin in MÖDLING (Pallet Town),
+  Lavendelwasser bei RENE in WR. NEUDORF, Kräuterseife bei NICI in
+  GAADEN, FLORIAN-Cameo, Finale gegen CESAR (eigenes Trainer-Porträt),
+  KÖNIGSSIEGEL und die Wahl ZUM HOF / BLEIBEN — der Kanon steht in
+  STORY.md
+- **STINK-AURA** (Option): wilde Pokemon fliehen teils vor dem Geruch,
+  NPCs bekommen Schreckblasen
+- **SLOWAKEI-LOOK** (Option): kühles Tatra-Grading aller Map-Paletten
+- **TATRA** (Shader-Pipeline, Hotkey 0): Grading, Vignette, Filmkorn
+- **"Nad Tatrou sa blýska"** (Volksweise, eigenes ChipAsm-Arrangement)
+  als Thema von Pallet Town
 
 ## Assets
 
 Alle Grafiken sind Originalarbeit und werden von `tools/make_assets.py`
 generiert (Python 3 + Pillow). Es sind keine ROM-Daten enthalten.
-
-```sh
-python3 tools/make_assets.py
-```

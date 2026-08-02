@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.9.0
+
+- Grosser Umbau: Man spielt wieder den normalen Trainer -- PRISTON ist
+  jetzt das HAUSTIER und laeuft als Follower neben dem Spieler her
+  (Laufzeit-NPC, folgt Zelle fuer Zelle, Durchtreten erlaubt, spawnt
+  pro Map neu). Player-Sprites/-Pics sind wieder Vanilla.
+- Grafik-Rework im Gen-1-Stil: neues Priston-Portraet (3/4-Sitzpose,
+  echte Schnauze, Zehen, Cel-Shading) samt GB-Graustufen-Variante
+  fuers Intro (wird wie Vanilla-Pics palettengetoent), neues
+  CESAR-Portraet (Drohhaltung, Nackenkamm, gebleckte Zaehne).
+- Story auf Haustier-Perspektive umgeschrieben (STORY.md-Kanon v3):
+  CESAR ist der Hund des Rivalen; der Brief adressiert den Spieler
+  als Halter; PRISTON bleibt in beiden Enden beim Spieler.
+- Stink-Aura erschreckt den eigenen Hund nicht mehr.
+
 ## 0.8.0
 
 - Komplette Story-Ueberarbeitung aus einem Guss (Kanon in STORY.md):

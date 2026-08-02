@@ -1,14 +1,12 @@
 return {
-  summary = "Spiele als PRISTON: dicker Schaeferhund, vom Hof der Slowakei verbannt.",
+  summary = "PRISTON, dein verbannter Koenigshund, laeuft als Follower neben dir her.",
   author = "patrickfock7",
   tags = { "cosmetic", "story", "quest", "deutsch" },
   differences = {
     changed = {
-      "Overworld-Laufsprite des Spielers (SPRITE_PRISTON, eigenes Sheet)",
-      "Battle-Backpic und Trainer-Portrait (field.playerPics)",
-      "Prof. Eichs Intro: deutsche Verbannungs-Story mit 4 neuen Steps",
-      "Namensvorschlaege: PRISTON/SMRAD/BOBIK und CESAR/REX/LORD zuerst",
+      "Prof. Eichs Intro: deutsche Haustier-Story mit 4 neuen Steps",
       "Quest-Dialoge auf PALLET_TOWN, LAVENDER_TOWN, VIRIDIAN_CITY (+ Nickname-Haus)",
+      "Ortsschilder: MOEDLING, WR. NEUDORF, GAADEN",
     },
     added = {
       "Cry 'PRISTON' (eigenes ChipAsm-Wuff)",
@@ -18,7 +16,7 @@ return {
       "TATRA-Shader-Pipeline (Hotkey 0): Grading, Vignette, Filmkorn in 3 Stufen",
     },
     known = {
-      "Surf-, Rad- und Flug-Sprites bleiben Vanilla (Priston auf dem Rad folgt)",
+      "Der Follower pausiert Map-Wechsel-los (spawnt pro Map neu); beim Surfen paddelt er nicht mit",
       "Die Shrink-Animation am Intro-Ende nutzt die Vanilla-Frames",
       "Trainer Card und Ruhmeshalle ignorieren trueColor -- das Portrait wird dort palettengetoent",
       "Deutsche Texte ohne Umlaute (Gen-1-Zeichensatz); Umlaut-Fontpage geplant",
