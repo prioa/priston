@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0
+
+- Der Hofstaat: 31 generische Trainerklassen tragen jetzt Hofaemter
+  aus Pristons Koenigreich -- LAUSBUB, KAMMERZOFE, KNAPPE, HOFNARR,
+  FALKNER, ZWINGERWART, BADEMEISTER, GLÜCKSRITTER, MINNESÄNGER,
+  LEIBGARDIST, ALCHEMIST, TOTENRUFERIN, INTRIGANT (Team Rocket) u.v.m.
+  Benannte Figuren (Arenaleiter, Top Vier, Rivale) bleiben unberuehrt.
+
 ## 0.12.4
 
 - Hymne klingt jetzt durchgehend: fade=0 fuer beide Stimmen -- vorher

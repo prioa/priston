@@ -129,6 +129,14 @@ Runtime.emit("battle.ended", { battle = { kind = "trainer", demo = true },
 T.eq((run.loader.modSave.priston or {}).euros, 6,
   "trainer +5, wild +1, demo zaehlt nicht")
 
+-- ------- der Hofstaat
+
+T.eq(Data.trainers.OPP_YOUNGSTER.name, "LAUSBUB", "Youngster ist Lausbub")
+T.eq(Data.trainers.OPP_TAMER.name, "ZWINGERWART", "Tamer ist Zwingerwart")
+T.eq(Data.trainers.OPP_ROCKET.name, "INTRIGANT", "Rocket ist Intrigant")
+T.eq(Data.trainers.OPP_BROCK.name, "BROCK",
+  "benannte Figuren bleiben unangetastet")
+
 -- ------- die Quest ist verdrahtet
 
 T.check(Data.items.PRISTON_LAVENDELWASSER ~= nil, "Lavendelwasser registered")

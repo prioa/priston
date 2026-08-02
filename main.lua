@@ -261,6 +261,50 @@ return function(mod)
     parties = { cesarParty },
   })
 
+  -- ------- der Hofstaat: Trainerklassen im Setting des Koenigreichs
+  -- Nur die generischen KLASSEN werden zu Hofaemtern; benannte Figuren
+  -- (Arenaleiter, Top Vier, Rivale) behalten ihre Namen. patch nach dem
+  -- Deutsch-Mod (priority 50 < 100), damit die Hoftitel den Merge
+  -- gewinnen; fehlt eine Klasse in der Basis, wird sie uebersprungen.
+  local HOFSTAAT = {
+    OPP_YOUNGSTER = "LAUSBUB",
+    OPP_BUG_CATCHER = "MOTTENFÄNGER",
+    OPP_LASS = "KAMMERZOFE",
+    OPP_SAILOR = "BOOTSMANN",
+    OPP_JR_TRAINER_M = "KNAPPE",
+    OPP_JR_TRAINER_F = "HOFFRÄULEIN",
+    OPP_POKEMANIAC = "POKéNARR",
+    OPP_SUPER_NERD = "HOFGELEHRTER",
+    OPP_HIKER = "BERGVOGT",
+    OPP_BIKER = "KUTSCHER",
+    OPP_BURGLAR = "SCHATZDIEB",
+    OPP_ENGINEER = "HUFSCHMIED",
+    OPP_FISHER = "FISCHVOGT",
+    OPP_SWIMMER = "BADEMEISTER",
+    OPP_CUE_BALL = "SÖLDNER",
+    OPP_GAMBLER = "GLÜCKSRITTER",
+    OPP_BEAUTY = "HOFDAME",
+    OPP_PSYCHIC_TR = "HOFSEHER",
+    OPP_ROCKER = "MINNESÄNGER",
+    OPP_JUGGLER = "HOFNARR",
+    OPP_UNUSED_JUGGLER = "GAUKLER",
+    OPP_TAMER = "ZWINGERWART",
+    OPP_BIRD_KEEPER = "FALKNER",
+    OPP_BLACKBELT = "LEIBGARDIST",
+    OPP_SCIENTIST = "ALCHEMIST",
+    OPP_ROCKET = "INTRIGANT",
+    OPP_GENTLEMAN = "EDELMANN",
+    OPP_COOLTRAINER_M = "RITTER",
+    OPP_COOLTRAINER_F = "EDELDAME",
+    OPP_CHANNELER = "TOTENRUFERIN",
+    OPP_CHIEF = "TRUCHSESS",
+  }
+  for id, titel in pairs(HOFSTAAT) do
+    if mod.content.trainers:get(id) then
+      mod.content.trainers:patch(id, { name = titel })
+    end
+  end
+
   mod.content.map_scripts:register("PALLET_TOWN", {
     talk = {
       TEXT_PALLETTOWN_SIGN = {
