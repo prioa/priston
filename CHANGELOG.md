@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.4
+
+- Hymne klingt jetzt durchgehend: fade=0 fuer beide Stimmen -- vorher
+  verklang jede Note nach ~0,3s und der Rest ihres Zeitschlitzes war
+  Stille (per WAV-Analyse belegt: 19 Luecken in 20s vs. 0 bei Vanilla;
+  nach dem Fix 0). Das war der eigentliche "Musik buggt"-Eindruck.
+- Die Euro-Anzeige erscheint erst, nachdem der Frisoer die Aufgabe
+  erteilt hat (MOD_PRISTON_QUEST) -- vorher gibt es nichts zu zaehlen.
+
 ## 0.12.3
 
 - Hymne sauber neu gesetzt: deklarative Notentabellen in echtem 3/4

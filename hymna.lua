@@ -7,7 +7,10 @@
 -- aus den Tabellen GEBAUT, und die Gesamtlaengen beider Stimmen werden
 -- mitgeliefert -- main.lua verweigert die Registrierung, wenn sie nicht
 -- exakt gleich sind. Loop-Drift (der alte "Musik buggt"-Fehler) ist
--- damit konstruktiv ausgeschlossen.
+-- damit konstruktiv ausgeschlossen. fade = 0: getragene Stimmen halten
+-- ihren ganzen Zeitschlitz -- mit Decay (fade > 0) verklingt jede Note
+-- nach ~0,3s und der Rest des Slots ist STILLE (der "Musik buggt"-
+-- Hoereindruck; per WAV-Analyse belegt: 19 Luecken vs. 0 bei Vanilla).
 local ChipAsm = require("src.audio.ChipAsm")
 
 -- { Oktave, Ton, Laenge }; Ton "-" = Pause
@@ -83,9 +86,9 @@ return {
     tempo = 0x150,
     channels = {
       { hw = 1, program = programm(MELODIE,
-          { duty = 2, speed = 12, volume = 10, fade = 2 }, "melodie") },
+          { duty = 2, speed = 12, volume = 10, fade = 0 }, "melodie") },
       { hw = 2, program = programm(BASS,
-          { duty = 1, speed = 12, volume = 6, fade = 1 }, "bass") },
+          { duty = 1, speed = 12, volume = 6, fade = 0 }, "bass") },
     },
   },
 }

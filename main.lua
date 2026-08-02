@@ -645,6 +645,10 @@ return function(mod)
       if not (game and game.overworld and viewport and viewport.scale) then
         return
       end
+      -- Anzeige erst, wenn der Frisoer die Aufgabe erteilt hat -- vorher
+      -- hat der Spieler mit Euros nichts zu schaffen
+      local flags = game.save and game.save.flags
+      if not (flags and flags.MOD_PRISTON_QUEST) then return end
       local Font = mod.ui.Font
       local label = tostring(mod.save:get("euros", 0)) .. "€"
       local w = Font.width(label)
