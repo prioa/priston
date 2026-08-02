@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.0
+
+- Walker-Seitenansicht komplett neu: gleiche Masse wie Front- und
+  Rueckansicht (hoher Ruecken, Haengebauch, Ringelrute, drei Laeufe) --
+  der Hund wirkt aus jeder Richtung gleich gross.
+- Stinkwolken deutlich sichtbarer: doppelt so breit, kraeftigeres
+  Gruen, hoehere Deckkraft.
+- Bell-Effekt: PRISTON ansprechen (A) spielt sein WUFF (Cry) und
+  zeigt eine Freude-Blase; Event mod.priston.wuff fuer andere Mods.
+
 ## 0.9.2
 
 - Follower-Fix: beim Rueckkehren auf eine gecachte Map (Haus rein/raus,

@@ -703,6 +703,25 @@ return function(mod)
     handle:scriptMove(dir, 1, function() follower.moving = false end)
   end)
 
+  -- ------- Bellen: PRISTON ansprechen (A) -> WUFF + Freude-Blase
+  mod.events:on("world.interacted", function(ev)
+    if not follower.active or ev.kind ~= "npc" then return end
+    local target = ev.target
+    if not (type(target) == "table" and target.def
+            and target.def.name == FOLLOWER) then
+      return
+    end
+    local world = mod.world
+    local ow = world and world.overworld and world:overworld()
+    if not ow or ow.emote then return end
+    pcall(function()
+      local Game = require("src.core.Game")
+      require("src.core.Sound").playCry(Game.data, "PRISTON")
+    end)
+    ow.emote = { npc = target, frames = 32, bubble = 3, skippable = true }
+    mod.events:emit("mod.priston.wuff", { mapId = ev.mapId })
+  end)
+
   -- Der Spieler darf durch seinen Hund hindurchtreten (der weicht beim
   -- naechsten Schritt ohnehin auf die verlassene Zelle aus)
   mod.hooks:wrap("movement.collision", function(next, allowed, ctx)

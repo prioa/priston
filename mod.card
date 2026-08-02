@@ -9,7 +9,7 @@ return {
       "Ortsschilder: MOEDLING, WR. NEUDORF, GAADEN",
     },
     added = {
-      "Cry 'PRISTON' (eigenes ChipAsm-Wuff)",
+      "Cry 'PRISTON' (eigenes ChipAsm-Wuff); Ansprechen des Hundes bellt + Freude-Blase",
       "mod.save: ehre_schwur (Antwort im Intro), intro_gesehen",
       "Option SLOWAKEI-LOOK: kuehles Tatra-Color-Grading aller Map-Paletten",
       "SLOVAK_*-Palettenvarianten (Vanilla-Paletten bleiben unangetastet)",

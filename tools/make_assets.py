@@ -99,31 +99,30 @@ UP_WALK = UP_STAND[:13] + [
     ".......kk.......",
 ]
 
-# Left = side view: long muzzle poking left with the dark mask, one upright
-# ear, the saddle mantle over the back, a big sagging cream belly, the tail
-# hanging low behind. Right-facing frames are engine flips.
+# Left = Seitenansicht mit derselben Masse wie die Front-/Rueckansicht:
+# hoher Ruecken, dicker Haengebauch, Schnauze vorn, Ringelrute hinten.
 LEFT_STAND = [
     "................",
-    "....kk..........",
-    "...ksk..........",
-    "..kssk..........",
-    ".ksttsk.........",
-    ".ktkttk.........",
-    "kksttttk........",
-    ".kttttskk....kk.",
-    "..klglkssssskssk",
-    ".kstttttssssssk.",
-    ".ktttttttsssssk.",
-    ".kctttttttttsk..",
-    ".kccttttttttk...",
-    "..ktk.....ktk...",
-    "..kkk.....kkk...",
+    "...kk......k....",
+    "..ksk.....ksk...",
+    ".kstsk....ksk...",
+    ".ksttskkkkssk...",
+    "kktkttssssssk...",
+    "kksttttsssssck..",
+    ".ksttttsssssssk.",
+    ".kcttttttttsssk.",
+    ".kcctttttttttsk.",
+    ".kccttttttttttk.",
+    "..kcttttttttttk.",
+    "..kttttttttttk..",
+    "..ktk..ktk.ktk..",
+    "..kkk..kkk.kkk..",
     "................",
 ]
 
 LEFT_WALK = LEFT_STAND[:13] + [
-    ".ktk.......ktk..",
-    ".kkk.......kkk..",
+    ".ktk...ktk..ktk.",
+    ".kkk...kkk..kkk.",
     "................",
 ]
 
@@ -523,18 +522,19 @@ def make_stink():
     Zwei Wellenlinien mit Phasenversatz pro Frame; Alpha nimmt nach oben
     ab, damit die Schwaden verwehen."""
     import math
-    E1 = (140, 178, 96)
-    E2 = (176, 205, 130)
+    E1 = (110, 200, 70)
+    E2 = (160, 230, 110)
     sheet = Image.new("RGBA", (16, 64), (0, 0, 0, 0))
     px = sheet.load()
     for f in range(4):
         oy = f * 16
         for cx, col, speed in ((4, E1, 1.0), (11, E2, 1.3)):
-            for y in range(2, 14):
+            for y in range(1, 14):
                 x = cx + round(1.6 * math.sin(y / 2.6 + f * math.pi / 2 * speed))
-                if 0 <= x < 16:
-                    alpha = max(70, 255 - (13 - y) * 16)
-                    px[x, oy + y] = (col[0], col[1], col[2], alpha)
+                alpha = max(140, 255 - (13 - y) * 12)
+                for xx in (x, x + 1):
+                    if 0 <= xx < 16:
+                        px[xx, oy + y] = (col[0], col[1], col[2], alpha)
     sheet.save(os.path.join(OUT, "priston_stink.png"))
 
 
