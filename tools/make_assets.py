@@ -43,6 +43,102 @@ PAL = {
 }
 OUT = os.path.join(os.path.dirname(__file__), "..", "assets")
 
+# ---------------------------------------------------------------- Referenz
+# Der Kanon-Charakter kommt aus tools/ref/idle8.gif (8-Richtungen-Idle,
+# vom Autor der Mod geliefert). Abgeleitet wird per: groesste zusammen-
+# haengende Komponente (entfernt Herzchen/Stinkkringel/Fliegen), Bounding-
+# Box, LANCZOS-Skalierung, Quantisierung auf die Referenzpalette.
+
+REF_PAL = [
+    (10, 8, 8),      # Outline
+    (45, 44, 42),    # schwarzer Mantel
+    (58, 47, 37),    # tiefes Braun
+    (134, 86, 55),   # Braun-Schatten
+    (195, 128, 65),  # Tan
+    (206, 154, 93),  # helles Tan
+    (118, 140, 82),  # Halsband-Gruen
+]
+REF_GB = {
+    (10, 8, 8): 30, (58, 47, 37): 30,
+    (45, 44, 42): 90, (134, 86, 55): 90,
+    (195, 128, 65): 170, (118, 140, 82): 170,
+    (206, 154, 93): 240,
+}
+
+_ref_cache = None
+
+
+def _ref_frames():
+    global _ref_cache
+    if _ref_cache is None:
+        from PIL import ImageSequence
+        gif = Image.open(os.path.join(os.path.dirname(__file__),
+                                      "ref", "idle8.gif"))
+        _ref_cache = [f.convert("RGBA") for f in ImageSequence.Iterator(gif)]
+    return _ref_cache
+
+
+def _largest_component(img, athr=128):
+    w, h = img.size
+    px = img.load()
+    seen = [[False] * h for _ in range(w)]
+    best = []
+    for sx in range(w):
+        for sy in range(h):
+            if seen[sx][sy] or px[sx, sy][3] <= athr:
+                continue
+            comp, stack = [], [(sx, sy)]
+            seen[sx][sy] = True
+            while stack:
+                x, y = stack.pop()
+                comp.append((x, y))
+                for nx in (x - 1, x, x + 1):
+                    for ny in (y - 1, y, y + 1):
+                        if 0 <= nx < w and 0 <= ny < h \
+                           and not seen[nx][ny] and px[nx, ny][3] > athr:
+                            seen[nx][ny] = True
+                            stack.append((nx, ny))
+            if len(comp) > len(best):
+                best = comp
+    out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    opx = out.load()
+    for x, y in best:
+        opx[x, y] = px[x, y]
+    return out
+
+
+def _derive(frame_idx, box_w, box_h):
+    src = _largest_component(_ref_frames()[frame_idx])
+    # angedockte Stinkkringel-Reste: Gruen oberhalb der Koerpermitte weg
+    # (das gruene HALSBAND sitzt unten und bleibt unberuehrt)
+    bb = src.getbbox()
+    spx = src.load()
+    for y in range(bb[1], bb[1] + (bb[3] - bb[1]) // 2):
+        for x in range(bb[0], bb[2]):
+            r, g, b, a = spx[x, y]
+            if a > 0 and g > r + 12 and g > b + 20:
+                spx[x, y] = (0, 0, 0, 0)
+    src = src.crop(src.getbbox())
+    scale = min(box_w / src.width, box_h / src.height)
+    nw = max(1, round(src.width * scale))
+    nh = max(1, round(src.height * scale))
+    img = src.resize((nw, nh), Image.LANCZOS)
+    out = Image.new("RGBA", (box_w, box_h), (0, 0, 0, 0))
+    out.paste(img, ((box_w - nw) // 2, box_h - nh), img)
+    px = out.load()
+    for y in range(box_h):
+        for x in range(box_w):
+            r, g, b, a = px[x, y]
+            if a < 110:
+                px[x, y] = (0, 0, 0, 0)
+                continue
+            c = min(REF_PAL,
+                    key=lambda p: (p[0] - r) ** 2 + (p[1] - g) ** 2
+                                  + (p[2] - b) ** 2)
+            px[x, y] = c + (255,)
+    return out
+
+
 # ---------------------------------------------------------------- walker
 
 # A chubby German Shepherd with the Slovak-tricolor collar. Down = facing
@@ -141,10 +237,21 @@ def grid_to_image(grid):
 
 
 def make_walker():
+    """16x96-Walker aus der Referenz: Frames 0/4/6 (vorn/hinten/links),
+    Walk-Phase = 1px-Bob (Beine tucken), rechts spiegelt die Engine."""
     sheet = Image.new("RGBA", (16, 96), (0, 0, 0, 0))
-    for i, frame in enumerate(WALKER_FRAMES):
-        assert len(frame) == 16, "frame %d has %d rows" % (i, len(frame))
-        sheet.paste(grid_to_image(frame), (0, i * 16))
+    stands = {
+        0: _derive(0, 16, 15),   # down
+        1: _derive(4, 16, 15),   # up
+        2: _derive(6, 16, 15),   # left
+    }
+    for slot, frame in stands.items():
+        cell = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        cell.paste(frame, (0, 1), frame)
+        sheet.paste(cell, (0, slot * 16))
+        walk = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        walk.paste(frame, (0, 0), frame)          # 1px hoeher = Schritt
+        sheet.paste(walk, (0, (slot + 3) * 16))
     sheet.save(os.path.join(OUT, "priston_walk.png"))
 
 
@@ -175,37 +282,10 @@ def stink_wisps(d, spots):
 # ------------------------------------------------------------- battle back
 
 def make_back():
-    """32x32, from behind: round rear, the dark mantle across the back,
-    ears over the head, the Slovak collar peeking out, stink wisps."""
+    """32x32-Kampf-Rueckenansicht aus der Referenz (Frame 4)."""
     img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-
-    # the enormous rear
-    d.ellipse([3, 14, 28, 31], fill=T, outline=K)
-    # dark mantle across back and shoulders
-    d.ellipse([6, 14, 25, 26], fill=S)
-    # head from behind
-    d.ellipse([9, 5, 22, 18], fill=S, outline=K)
-    # leather collar between head and shoulders, one gold tag
-    d.line([(10, 16), (21, 16)], fill=PAL["l"])
-    d.line([(10, 17), (21, 17)], fill=PAL["l"])
-    d.line([(11, 18), (20, 18)], fill=PAL["l"])
-    d.point([(15, 17), (16, 17)], fill=G)
-    # ears
-    d.polygon([(10, 8), (8, 1), (15, 5)], fill=S, outline=K)
-    d.polygon([(21, 8), (23, 1), (16, 5)], fill=S, outline=K)
-    d.polygon([(11, 6), (10, 3), (14, 5)], fill=P)
-    d.polygon([(20, 6), (21, 3), (17, 5)], fill=P)
-    # tail hanging at the right hip, tan tip
-    d.line([(26, 20), (28, 24), (27, 29)], fill=S, width=2)
-    d.point([(27, 30), (28, 30)], fill=T)
-    # tan haunches
-    d.ellipse([4, 24, 10, 30], fill=T)
-    d.ellipse([21, 24, 27, 30], fill=T)
-    # hind paws
-    d.rectangle([7, 29, 11, 31], fill=T, outline=K)
-    d.rectangle([20, 29, 24, 31], fill=T, outline=K)
-
+    dog = _derive(4, 30, 30)
+    img.paste(dog, (1, 2), dog)
     img.save(os.path.join(OUT, "priston_back.png"))
 
 
@@ -240,118 +320,58 @@ _FRONT_GB = {
 }
 
 
-def _front_master():
-    tok = Image.new("P", (56, 56), _T_EMPTY)
-    d = ImageDraw.Draw(tok)
-
-    # ---- Grundformen (nur Fuellungen; Outline kommt automatisch) ----
-    d.ellipse([1, 41, 13, 53], fill=_T_SAD)            # Rute
-    d.ellipse([3, 43, 10, 50], fill=_T_TAN)
-    d.ellipse([29, 33, 54, 55], fill=_T_TAN)           # Haunch rechts
-    d.ellipse([7, 30, 46, 55], fill=_T_TAN)            # Rumpf
-    d.polygon([(16, 32), (22, 28), (30, 28), (36, 32), (37, 40),
-               (34, 48), (30, 53), (23, 53), (18, 48), (15, 40)],
-              fill=_T_CREAM)                           # Brustwolle
-    d.rectangle([17, 42, 22, 54], fill=_T_CREAM)       # Vorderlaeufe
-    d.rectangle([28, 43, 33, 55], fill=_T_CREAM)
-    d.polygon([(15, 17), (10, 2), (24, 9)], fill=_T_SAD)   # Ohr links
-    d.polygon([(38, 17), (44, 2), (30, 9)], fill=_T_SAD)   # Ohr rechts
-    d.polygon([(16, 13), (13, 5), (21, 10)], fill=_T_PINK)
-    d.polygon([(37, 13), (40, 5), (32, 10)], fill=_T_PINK)
-    d.polygon([(23, 8), (23, 2), (25, 5), (28, 0), (31, 5), (33, 2),
-               (33, 8)], fill=_T_GOLD)                 # Krone
-    d.ellipse([13, 8, 41, 32], fill=_T_TAN)            # Kopf
-    d.polygon([(14, 20), (14, 13), (20, 8), (34, 8), (40, 13), (40, 20),
-               (36, 17), (31, 20), (27, 17), (23, 20), (18, 17)],
-              fill=_T_SAD)                             # Maske mit Zacken
-    d.ellipse([20, 21, 34, 33], fill=_T_TANL)          # Schnauze
-    d.ellipse([23, 27, 31, 33], fill=_T_CREAM)         # Kinn/Lefzen
-
-    # ---- Silhouetten-Outline automatisch nachziehen ----
-    px = tok.load()
-    edge = []
-    for y in range(56):
-        for x in range(56):
-            if px[x, y] == _T_EMPTY:
-                continue
-            for nx, ny in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)):
-                if nx < 0 or ny < 0 or nx > 55 or ny > 55 \
-                   or px[nx, ny] == _T_EMPTY:
-                    edge.append((x, y))
-                    break
-    for x, y in edge:
-        px[x, y] = _T_OUT
-
-    # ---- Innenzeichnung ----
-    d.rectangle([19, 15, 22, 16], fill=_T_TAN)         # Brauen
-    d.rectangle([32, 15, 35, 16], fill=_T_TAN)
-    d.rectangle([20, 18, 23, 22], fill=_T_OUT)         # Augen
-    d.rectangle([31, 18, 34, 22], fill=_T_OUT)
-    px[21, 19] = _T_EYEW; px[32, 19] = _T_EYEW
-    d.rectangle([25, 23, 29, 26], fill=_T_OUT)         # Nase
-    px[26, 24] = _T_SADD
-    d.line([(27, 26), (27, 29)], fill=_T_OUT)          # Nasensteg
-    d.arc([23, 26, 31, 32], 20, 160, fill=_T_OUT)      # Maul
-    d.line([(20, 33), (34, 33)], fill=_T_OUT)          # Kinn-Abgrenzung
-    d.line([(21, 34), (33, 34)], fill=_T_CREAMD)
-
-    # Ohr-Konturen innen (Basis vom Kopf trennen)
-    d.line([(16, 16), (20, 12)], fill=_T_OUT)
-    d.line([(37, 16), (33, 12)], fill=_T_OUT)
-
-    # Kronen-Innenzeichnung
-    d.line([(24, 7), (32, 7)], fill=_T_GOLDD)
-    px[26, 4] = _T_GOLDD; px[30, 4] = _T_GOLDD
-
-    # Beine: Zehen + Trennung von der Brust
-    for lx in (18, 20): d.line([(lx, 51), (lx, 53)], fill=_T_CREAMD)
-    for lx in (29, 31): d.line([(lx, 52), (lx, 54)], fill=_T_CREAMD)
-    d.line([(17, 41), (22, 41)], fill=_T_CREAMD)
-    d.line([(28, 42), (33, 42)], fill=_T_CREAMD)
-
-    # ---- Cel-Schatten mit Dither-Grenze (klassischer Gen-1-Look) ----
-    def shade(x0, x1, y0, y1, base, dark):
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1):
-                if px[x, y] == base:
-                    if y > y0 + 1 or (x + y) % 2 == 0:
-                        px[x, y] = dark
-    shade(8, 15, 47, 54, _T_TAN, _T_TAND)              # Rumpf unten links
-    shade(36, 53, 48, 54, _T_TAN, _T_TAND)             # Haunch unten
-    shade(40, 50, 36, 41, _T_TAN, _T_TAND)             # Haunch-Kuppe
-    shade(14, 18, 24, 30, _T_TAN, _T_TAND)             # Wangenschatten
-    shade(36, 40, 24, 30, _T_TAN, _T_TAND)
-    # Haunch-Falte
-    d.line([(38, 42), (35, 50)], fill=_T_TAND)
-
-    return tok
+def _add_crown(img, gold=(236, 190, 64, 255), dark=(170, 126, 34, 255),
+               outline=(10, 8, 8, 255)):
+    """Kleine schiefe Krone auf den hoechsten Kopfpunkt setzen."""
+    d = ImageDraw.Draw(img)
+    px = img.load()
+    w, h = img.size
+    top, cx = None, w // 2
+    for y in range(h):
+        for x in range(w // 2 - w // 6, w // 2 + w // 6):
+            if px[x, y][3] > 0:
+                top, cx = y, x
+                break
+        if top is not None:
+            break
+    if top is None:
+        return img
+    base = max(6, top + 1)
+    x0 = cx - 1
+    d.polygon([(x0, base), (x0, base - 4), (x0 + 2, base - 6), (x0 + 4, base - 3),
+               (x0 + 6, base - 7), (x0 + 8, base - 3), (x0 + 10, base - 5),
+               (x0 + 10, base)], fill=gold, outline=outline)
+    d.line([(x0, base), (x0 + 10, base)], fill=outline)
+    d.point([(x0 + 3, base - 3), (x0 + 7, base - 4)], fill=dark)
+    return img
 
 
 def make_front():
-    """Farbfassung aus dem Token-Master."""
-    tok = _front_master()
+    """56x56-Portraet direkt aus der Referenz (Frame 0), plus Krone."""
     img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
-    spx, px = tok.load(), img.load()
-    for y in range(56):
-        for x in range(56):
-            t = spx[x, y]
-            if t != _T_EMPTY:
-                px[x, y] = _FRONT_COLORS[t]
+    dog = _derive(0, 52, 48)
+    img.paste(dog, (2, 8), dog)
+    _add_crown(img)
     img.save(os.path.join(OUT, "priston_front.png"))
 
 
 def make_front_gb():
-    """GB-Fassung aus demselben Master: 4 Remap-sichere Stufen, keine
-    Quantisierungs-Flecken."""
-    tok = _front_master()
+    """GB-Fassung: expliziter LUT von Referenzpalette auf 4 Stufen."""
+    src = Image.open(os.path.join(OUT, "priston_front.png")).convert("RGBA")
     img = Image.new("RGBA", (56, 56), (0, 0, 0, 0))
-    spx, px = tok.load(), img.load()
+    spx, px = src.load(), img.load()
+    extra = { (236, 190, 64): 170, (170, 126, 34): 90 }
     for y in range(56):
         for x in range(56):
-            t = spx[x, y]
-            if t != _T_EMPTY:
-                v = _FRONT_GB[t]
-                px[x, y] = (v, v, v, 255)
+            r, g, b, a = spx[x, y]
+            if a == 0:
+                continue
+            v = REF_GB.get((r, g, b)) or extra.get((r, g, b))
+            if v is None:
+                luma = 0.299 * r + 0.587 * g + 0.114 * b
+                v = 240 if luma > 200 else 170 if luma > 120 \
+                    else 90 if luma > 55 else 30
+            px[x, y] = (v, v, v, 255)
     img.save(os.path.join(OUT, "priston_front_gb.png"))
 
 

@@ -25,7 +25,7 @@ return {
     },
   },
   credits = {
-    { who = "patrickfock7", for_ = "Idee und Figur PRISTON" },
+    { who = "patrickfock7", for_ = "Idee, Figur und Referenz-Artwork PRISTON (tools/ref/idle8.gif)" },
   },
   compat = { engine = ">=0.0.0-dev <1.0.0", modApi = 2 },
 }

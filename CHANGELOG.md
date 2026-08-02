@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0
+
+- PRISTONs Grafiken werden jetzt aus der offiziellen Referenz
+  abgeleitet (tools/ref/idle8.gif, 8-Richtungen-Idle vom Mod-Autor):
+  Walker (vorn/hinten/seitlich), Kampf-Rueckenansicht und Portraet
+  samt GB-Fassung entstehen per Komponentenfilter, Skalierung und
+  Palettenquantisierung direkt aus der Vorlage -- schwarzer Mantel,
+  sattes Tan, gruenes Halsband, Krone obendrauf.
+
 ## 0.11.0
 
 - Euro-Wirtschaft: Trainer-Siege +5 Euro, wilde Siege +1 (Demos zaehlen
