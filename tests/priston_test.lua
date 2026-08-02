@@ -105,6 +105,21 @@ T.check(type(byId.priston_reveal.pic) == "table"
   "reveal shows the GB-gray portrait (intro pics get palette-tinted)")
 T.check(byId.oak_welcome.text ~= nil, "welcome text replaced (German)")
 
+-- ------- die Euro-Wirtschaft
+
+T.check(Data.commands and Data.commands["priston:check_euro"] ~= nil,
+  "check_euro command registered")
+T.check(Data.commands and Data.commands["priston:pay_euro"] ~= nil,
+  "pay_euro command registered")
+T.check(Data.tokens and Data.tokens.PRISTON_EURO ~= nil,
+  "euro token registered")
+Runtime.emit("battle.ended", { battle = { kind = "trainer" }, result = "win" })
+Runtime.emit("battle.ended", { battle = { kind = "wild" }, result = "win" })
+Runtime.emit("battle.ended", { battle = { kind = "trainer", demo = true },
+                               result = "win" })
+T.eq((run.loader.modSave.priston or {}).euros, 6,
+  "trainer +5, wild +1, demo zaehlt nicht")
+
 -- ------- die Quest ist verdrahtet
 
 T.check(Data.items.PRISTON_LAVENDELWASSER ~= nil, "Lavendelwasser registered")

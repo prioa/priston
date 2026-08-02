@@ -418,6 +418,16 @@ UMLAUTS = {
         ".xxxx...",
         "........",
     ],
+    "euro": [
+        "..xxxx..",
+        ".x......",
+        "xxxx....",
+        ".x......",
+        "xxxx....",
+        ".x......",
+        "..xxxx..",
+        "........",
+    ],
     "sz": [
         ".xxx....",
         "x...x...",
@@ -429,7 +439,7 @@ UMLAUTS = {
         "x.......",
     ],
 }
-UMLAUT_ORDER = ["ae", "oe", "ue", "AE", "OE", "UE", "sz"]
+UMLAUT_ORDER = ["ae", "oe", "ue", "AE", "OE", "UE", "sz", "euro"]
 
 
 def make_font():

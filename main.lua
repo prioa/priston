@@ -26,7 +26,7 @@ return function(mod)
   mod.content.font:register("priston_umlauts", {
     image = mod.path .. "/assets/priston_font.png",
     base = 0x120,
-    glyphsPerRow = 7,
+    glyphsPerRow = 8,
     charmap = {
       { seq = "\195\164", code = 0x120 },  -- ae
       { seq = "\195\182", code = 0x121 },  -- oe
@@ -35,6 +35,7 @@ return function(mod)
       { seq = "\195\150", code = 0x124 },  -- OE
       { seq = "\195\156", code = 0x125 },  -- UE
       { seq = "\195\159", code = 0x126 },  -- sz
+      { seq = "\226\130\172", code = 0x127 },  -- Euro
     },
   })
 
@@ -176,6 +177,31 @@ return function(mod)
       default = true },
   })
 
+  -- ------- Euro-Wallet: der Frisoer nimmt kein Pokedollar
+  -- Trainer-Siege +5, wilde Siege +1; Stand in mod.save.euros, Anzeige
+  -- oben rechts (render.hud), Abrechnung ueber eigene Script-Verben.
+
+  mod.events:on("battle.ended", function(ev)
+    if not ev or ev.result ~= "win" or ev.skipped then return end
+    local battle = ev.battle
+    if not battle or battle.demo or battle.ghost then return end
+    local reward = (battle.kind == "trainer") and 5 or 1
+    mod.save:set("euros", math.min(999, (mod.save:get("euros", 0)) + reward))
+  end)
+
+  mod.content.tokens:register("PRISTON_EURO", function()
+    return tostring(mod.save:get("euros", 0))
+  end)
+
+  mod.commands:register("priston:check_euro", function(ctx, amount)
+    ctx.lastCheck = (mod.save:get("euros", 0)) >= (tonumber(amount) or 0)
+  end)
+
+  mod.commands:register("priston:pay_euro", function(ctx, amount)
+    local euros = mod.save:get("euros", 0)
+    mod.save:set("euros", math.max(0, euros - (tonumber(amount) or 0)))
+  end)
+
   -- ------- Quest: "Die Ehre zurück"
   -- Der Hof gewährt das VOLLPROGRAMM beim Hundefrisör zu MÖDLING (Pallet
   -- Town spielt Mödling; die Schilder unten benennen auch WR. NEUDORF
@@ -234,15 +260,18 @@ return function(mod)
           .. "\"PRISTON hat einen\nTERMIN beim\vFRISÖR.\"\f"
           .. "\"Danach öffnet den\nUMSCHLAG, der\vbeiliegt.\"" },
         { "show_text", "Ein Frisörbesuch\nalso! Waschen,\vBürsten, Krallen --\vdas Vollprogramm\vhalt.\f"
-          .. "Nur fehlt mir was\nfürs KÖNIGLICHE\vProtokoll:\f"
+          .. "Macht 100€. Und\nfürs KÖNIGLICHE\vProtokoll brauche\vich noch:\f"
           .. "LAVENDELWASSER von\nRENE, WR. NEUDORF.\f"
-          .. "KRÄUTERSEIFE von\nNICI, GAADEN." },
+          .. "KRÄUTERSEIFE von\nNICI, GAADEN.\f"
+          .. "Trainer zahlen dir\ndoch PREISGELD --\vdas wird schon!" },
         { "set_flag", Q_START },
         { "jump", "end" },
 
         { "label", "laufend" },
         { "check_item", WASSER }, { "jump_if_false", "erinnern" },
         { "check_item", SEIFE }, { "jump_if_false", "erinnern" },
+        { "priston:check_euro", 100 }, { "jump_if_false", "zu_arm" },
+        { "priston:pay_euro", 100 },
         { "take_item", WASSER },
         { "take_item", SEIFE },
         { "show_text", "Alles da! Rauf mit\nPRISTON auf den\vTisch.\f"
@@ -291,7 +320,14 @@ return function(mod)
         { "label", "erinnern" },
         { "show_text", "Der TERMIN steht!\nEs fehlt noch:\f"
           .. "LAVENDELWASSER:\nRENE, WR. NEUDORF.\f"
-          .. "KRÄUTERSEIFE:\nNICI, GAADEN." },
+          .. "KRÄUTERSEIFE:\nNICI, GAADEN.\f"
+          .. "Und 100€ -- du\nhast {PRISTON_EURO}€." },
+        { "jump", "end" },
+
+        { "label", "zu_arm" },
+        { "show_text", "Die Zutaten sind\nda -- aber das\vVOLLPROGRAMM\vkostet 100€.\f"
+          .. "Du hast erst\n{PRISTON_EURO}€.\f"
+          .. "Besieg ein paar\nTRAINER, dann\vsehen wir uns!" },
         { "jump", "end" },
 
         { "label", "fertig" },
@@ -541,12 +577,63 @@ return function(mod)
   -- render.hud liefert jedes Frame das Spielfeld-Rechteck in denselben
   -- Fenster-Pixeln, in denen der present-Pass arbeitet (Renderer:endFrame
   -- gibt dieselbe Tabelle an den Hook weiter)
+  -- DRAMATIC_SHAPE patcht Renderer:endFrame und verschluckt dessen
+  -- Rueckgabe -- render.hud bekommt dann viewport=nil. Fallback: die
+  -- Playfield-Geometrie selbst aus dem Renderer ableiten.
+  local function hudViewport(viewport)
+    if type(viewport) == "table" and viewport.scale then return viewport end
+    local ok, vp = pcall(function()
+      local Renderer = require("src.render.Renderer")
+      local ww, wh = love.graphics.getDimensions()
+      local pw, ph = love.graphics.getPixelDimensions()
+      local dpiX, dpiY = pw / ww, ph / wh
+      local Sp = Renderer:fitScale()
+      local uiw, uih = Renderer:uiSize()
+      return {
+        width = ww, height = wh,
+        gameX = math.floor((pw - uiw * Sp) / 2) / dpiX,
+        gameY = math.floor((ph - uih * Sp) / 2) / dpiY,
+        gameWidth = uiw * Sp / dpiX,
+        gameHeight = uih * Sp / dpiY,
+        scale = Sp / dpiX,
+      }
+    end)
+    if ok then return vp end
+    return nil
+  end
+
   mod.hooks:wrap("render.hud", function(next, game, viewport)
+    viewport = hudViewport(viewport)
     if type(viewport) == "table" and viewport.width then
       TATRA.viewport = viewport
     end
-    return next(game, viewport)
-  end)
+    local out = next(game, viewport)
+    -- Euro-Stand oben rechts, GB-Font, nur waehrend eines Spielstands
+    local okHud, hudErr = pcall(function()
+      if not (game and game.overworld and viewport and viewport.scale) then
+        return
+      end
+      local Font = mod.ui.Font
+      local label = tostring(mod.save:get("euros", 0)) .. "€"
+      local w = Font.width(label)
+      love.graphics.push("all")
+      love.graphics.translate(viewport.gameX or 0, viewport.gameY or 0)
+      love.graphics.scale(viewport.scale, viewport.scale)
+      love.graphics.setColor(1, 1, 1, 0.88)
+      love.graphics.rectangle("fill", 160 - w - 6, 1, w + 5, 10)
+      love.graphics.setColor(0, 0, 0, 1)
+      love.graphics.rectangle("line", 160 - w - 6, 1, w + 5, 10)
+      Font.draw(label, 160 - w - 3, 2)
+      love.graphics.pop()
+    end)
+    if not okHud and not TATRA.hudWarned then
+      TATRA.hudWarned = true
+      mod.log:warn("Euro-HUD zeichnet nicht: %s", tostring(hudErr))
+    end
+    return out
+  end, -100) -- niedrige Prioritaet: aeusserster Wrap, damit ein anderer Mod,
+             -- der den Viewport nicht weiterreicht (DRAMATIC_SHAPE), uns
+             -- die Engine-Argumente nicht wegnimmt
 
   local function tatraShader()
     if TATRA.shader == nil then

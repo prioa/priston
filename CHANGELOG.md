@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0
+
+- Euro-Wirtschaft: Trainer-Siege +5 Euro, wilde Siege +1 (Demos zaehlen
+  nicht); Stand permanent oben rechts im GB-Font (eigenes Euro-Glyph
+  auf der Font-Seite). Der Frisoertermin kostet 100 Euro -- der Frisoer
+  prueft und kassiert ueber eigene Script-Verben, neue Dialogzweige
+  fuer "zu arm" samt Kontostand-Token.
+- Robust gegen den endFrame-Bug des DramaticShape-Mods (verschluckter
+  Viewport): die HUD-Geometrie wird notfalls selbst aus dem Renderer
+  abgeleitet.
+
 ## 0.10.0
 
 - Walker-Seitenansicht komplett neu: gleiche Masse wie Front- und
