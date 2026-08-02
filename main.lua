@@ -773,30 +773,49 @@ return function(mod)
   mod.events:on("world.stepped", function(ev)
     if not follower.active then return end
     local world = mod.world
-    local handle = world and world:npc(ev.mapId, FOLLOWER)
-    if not handle then follower.active = false; return end
-    local npc = handle.npc
+    local ow = world and world.overworld and world:overworld()
+    if not ow then follower.active = false; return end
+    local dog
+    for _, npc in ipairs(ow.npcs or {}) do
+      if npc.def and npc.def.name == FOLLOWER then dog = npc; break end
+    end
+    if not dog then follower.active = false; return end
     local tx, ty = follower.prevX, follower.prevY
     follower.prevX, follower.prevY = ev.x, ev.y
-    if not (npc and npc.cellX and tx) then return end
-    local dx, dy = tx - npc.cellX, ty - npc.cellY
-    if dx == 0 and dy == 0 then return end
-    if math.abs(dx) + math.abs(dy) > 3 then
-      -- Anschluss verloren: direkt auf die verlassene Zelle setzen
-      npc.cellX, npc.cellY = tx, ty
-      if npc.px then npc.px, npc.py = tx * 16, ty * 16 end
-      follower.moving = false
+    if not (dog.cellX and tx) then return end
+    local dx, dy = tx - dog.cellX, ty - dog.cellY
+    local dist = math.abs(dx) + math.abs(dy)
+    if dist == 0 then return end
+    if dist > 3 then
+      -- Anschluss verloren (Bike, Warp in derselben Map): aufsetzen
+      dog.cellX, dog.cellY = tx, ty
+      dog.targetX, dog.targetY = nil, nil
+      dog.moving, dog.progress = false, 0
+      dog.px, dog.py = tx * 16, ty * 16
       return
     end
-    if follower.moving then return end
+    if dog.moving then return end
+    -- WICHTIG: kein scriptMove! Die Script-Queue friert waehrenddessen
+    -- die Spielereingabe ein (OverworldController: `#self.scriptMoves > 0`
+    -- gilt als Cutscene) -- das war das Stop-and-Go nach jedem Schritt.
+    -- Stattdessen den Wander-Mechanismus des NPC direkt ansteuern; der
+    -- blockiert nichts.
     local dir
     if math.abs(dx) >= math.abs(dy) then
       dir = dx > 0 and "right" or "left"
     else
       dir = dy > 0 and "down" or "up"
     end
-    follower.moving = true
-    handle:scriptMove(dir, 1, function() follower.moving = false end)
+    local okStep = pcall(function()
+      local Collision = require("src.world.Collision")
+      local d = Collision.DELTA[dir]
+      dog.facing = dir
+      dog.targetX, dog.targetY = dog.cellX + d[1], dog.cellY + d[2]
+      dog.moving, dog.progress = true, 0
+      -- Aufholen im Pikachu-Stil: halber Schritt-Takt bei Rueckstand
+      dog.stepFrames = (dist > 1) and 8 or nil
+    end)
+    if not okStep then follower.active = false end
   end)
 
   -- ------- Bellen: PRISTON ansprechen (A) -> WUFF + Freude-Blase

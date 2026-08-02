@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.2
+
+- Stop-and-Go beim Laufen behoben: Der Follower lief bisher ueber die
+  Script-Movement-Queue der Engine, die waehrend jeder Hunde-Bewegung
+  die Spielereingabe einfriert (Cutscene-Semantik) -- nach jedem
+  Schritt stand der Spieler kurz. PRISTON nutzt jetzt die
+  Wander-Mechanik der NPCs direkt (blockiert nichts) und holt bei
+  Rueckstand im Pikachu-Stil mit halbem Schritt-Takt auf.
+  Gemessen: 6 Zellen in 96 Frames Dauerlauf (voll fluessig).
+
 ## 0.12.1
 
 - Performance-/Grafikfix im Voxel-Modus: TATRA pausiert automatisch,
